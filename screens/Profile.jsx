@@ -58,7 +58,7 @@ const Profile = ({ navigation }) => {
     const id = await AsyncStorage.getItem("id");
     const userID = `user${JSON.parse(id)}`;
     try {
-      await AsyncStorage.multiRemove([userID, "token", "id"]);
+      await AsyncStorage.multiRemove([userID, "accessToken", "id"]);
       navigation.replace("Bottom Navigation");
     } catch (error) {
       console.error("Error deleting keys:", error);

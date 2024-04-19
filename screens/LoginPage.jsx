@@ -75,7 +75,10 @@ const LoginPage = ({ navigation }) => {
 
       try {
         setLoader(false);
-        await AsyncStorage.setItem("accessToken", responseData?.token);
+        await AsyncStorage.setItem(
+          "accessToken",
+          JSON.stringify(responseData?.token)
+        );
         await AsyncStorage.setItem(
           `user${responseData?.user?._id}`,
           JSON.stringify(responseData?.user)

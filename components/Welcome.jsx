@@ -7,67 +7,68 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import { COLORS, SIZES } from '../constants'
+import { COLORS, SIZES } from "../constants";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
 const Welcome = () => {
-  
- const navigation = useNavigation();
+  const navigation = useNavigation();
 
   return (
     <View>
       <View style={styles.container}>
         <Text style={styles.welcomeTxt}> Find The Most</Text>
-        <Text style={styles.welcomeMessage}> Luxurious Furniture</Text>
+        <Text style={styles.welcomeMessage}>Luxurious Furniture</Text>
       </View>
-      
-      
+
       <View style={styles.searchContainer}>
-      <TouchableOpacity>
-      <Feather style={styles.searchIcon} name="search" size={24} color="black" />
-      </TouchableOpacity>
+        <TouchableOpacity>
+          <Feather
+            style={styles.searchIcon}
+            name="search"
+            size={24}
+            color="black"
+          />
+        </TouchableOpacity>
         <View style={styles.searchWrapper}>
-       
           <TextInput
             style={styles.searchInput}
             value=""
             onPressIn={() => navigation.navigate("Search")}
             placeholder="What are you looking for?"
           />
-      </View>
-      
+        </View>
+
         <TouchableOpacity style={styles.searchBtn} onPress={() => {}}>
-        <Ionicons name="camera-outline" size={SIZES.xLarge} color={COLORS.offwhite} />
+          <Ionicons
+            name="camera-outline"
+            size={SIZES.xLarge}
+            color={COLORS.offwhite}
+          />
         </TouchableOpacity>
-     
       </View>
-      
     </View>
   );
 };
 
 export default Welcome;
 
-
-
 const styles = StyleSheet.create({
   container: {
     width: "100%",
   },
   welcomeTxt: {
-    fontFamily:'bold',
-    fontSize: SIZES.xxLarge-5,
+    fontFamily: "bold",
+    fontSize: SIZES.xxLarge - 5,
     color: COLORS.black,
-    marginTop: SIZES.xSmall
+    marginTop: SIZES.xSmall,
   },
   welcomeMessage: {
-    fontFamily: 'bold',
+    fontFamily: "bold",
     fontSize: SIZES.xxLarge - 6,
     color: COLORS.primary,
-    
   },
-  
+
   searchContainer: {
     justifyContent: "center",
     alignItems: "center",
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
     marginVertical: SIZES.medium,
     height: 50,
   },
-  
+
   searchWrapper: {
     flex: 1,
     backgroundColor: COLORS.secondary,
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   searchInput: {
-    fontFamily: 'regular',
+    fontFamily: "regular",
     width: "100%",
     height: "100%",
     paddingHorizontal: SIZES.medium,
@@ -105,9 +106,8 @@ const styles = StyleSheet.create({
   searchIcon: {
     marginRight: 10,
     marginLeft: 10,
-    color: 'gray',
+    color: "gray",
   },
-
 
   tabsContainer: {
     width: "100%",
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     borderColor: activeJobType === item ? COLORS.secondary : COLORS.gray2,
   }),
   tabText: (activeJobType, item) => ({
-    fontFamily: 'medium',
+    fontFamily: "medium",
     color: activeJobType === item ? COLORS.secondary : COLORS.gray2,
   }),
 });

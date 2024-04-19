@@ -13,20 +13,21 @@ import useFetch from "../../hook/useFetch";
 import ProductCardView from "../ProductViewCard";
 
 const ProductRow = () => {
-  const { data, isLoading, error} = useFetch()
+  const { data, isLoading, error } = useFetch();
   return (
     <View style={styles.container}>
       <View style={styles.cardsContainer}>
         {isLoading ? (
           <ActivityIndicator size="large" colors={COLORS.primary} />
-        ) : error ? (
-          <Text>Something went south</Text>
         ) : (
+          // : error ? (
+          //   <Text>Something went south</Text>
+          // )
           <FlatList
             data={data}
-            renderItem={({ item }) => (<ProductCardView item={item}  />)}
+            renderItem={({ item }) => <ProductCardView item={item} />}
             keyExtractor={(item) => item._id}
-            contentContainerStyle={{columnGap: SIZES.medium}}
+            contentContainerStyle={{ columnGap: SIZES.medium }}
             horizontal
           />
         )}
@@ -37,11 +38,10 @@ const ProductRow = () => {
 
 export default ProductRow;
 
-
 const styles = StyleSheet.create({
   container: {
     marginTop: SIZES.small,
-
+    marginBottom: 200,
   },
   header: {
     flexDirection: "row",
@@ -50,12 +50,12 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: SIZES.large,
-    fontFamily: 'medium',
+    fontFamily: "medium",
     color: COLORS.primary,
   },
   headerBtn: {
     fontSize: SIZES.medium,
-    fontFamily: 'medium',
+    fontFamily: "medium",
     color: COLORS.gray,
   },
   cardsContainer: {

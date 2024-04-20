@@ -706,7 +706,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   feedbackText: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#666",
   },
   author: {

@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
     marginHorizontal: marginHorizontal,
     paddingBottom: SIZES.xSmall,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
     width: width,
     top: top,
@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
   },
 
   cartBtn: {
-    width: SIZES.width * 0.7,
+    width: "auto",
     backgroundColor: COLORS.black,
     padding: SIZES.xSmall / 2,
     borderRadius: SIZES.large,

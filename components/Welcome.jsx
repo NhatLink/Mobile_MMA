@@ -19,7 +19,7 @@ const Welcome = () => {
       <View>
         <View style={styles.container}>
           <Text style={styles.welcomeTxt}>Find The Most</Text>
-          <Text style={styles.welcomeMessage}>Luxurious Furniture</Text>
+          <Text style={styles.welcomeMessage}>Luxurious Gift</Text>
         </View>
       </View>
 

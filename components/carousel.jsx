@@ -6,9 +6,9 @@ import { COLORS, SIZES } from '../constants'
 
 const Carousel = () => {
     const slides = [
-      "https://d326fntlu7tb1e.cloudfront.net/uploads/cb2e64a8-ad4c-4d45-b58b-b0c7e11b6bb4-fn1.jpg",
-      "https://d326fntlu7tb1e.cloudfront.net/uploads/b1f6d96d-3297-4270-ba65-657dc2bc0236-fn2.jpg",
-      "https://d326fntlu7tb1e.cloudfront.net/uploads/5d445b91-c01a-4564-8ff8-c27c2b88ea5b-fn7.png",
+      "https://i0.wp.com/artmall.co.ke/wp-content/uploads/2023/02/Items-in-a-Gift-Shop.png?ssl=1",
+      "https://www.seasidecountrystore.com/cdn/shop/articles/IMG_5184_2048x.jpg?v=1536683084",
+      "https://diefenbunker.ca/wp-content/uploads/2019/04/56549549_302856720392856_336805137714511872_n-1080x675.jpg",
       ];
   return (
    

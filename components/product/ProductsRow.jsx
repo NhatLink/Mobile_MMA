@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Button, // Import Button
 } from "react-native";
 import { COLORS, SIZES } from "../../constants";
 import useFetch from "../../hook/useFetch";
@@ -14,22 +15,30 @@ import ProductCardView from "../ProductViewCard";
 
 const ProductRow = () => {
   const { data, isLoading, error } = useFetch();
+  const [numItemsToShow, setNumItemsToShow] = useState(4);
+
+  const loadMoreItems = () => setNumItemsToShow(numItemsToShow + 4);
+
   return (
     <View style={styles.container}>
       <View style={styles.cardsContainer}>
         {isLoading ? (
           <ActivityIndicator size="large" colors={COLORS.primary} />
         ) : (
-          // : error ? (
-          //   <Text>Something went south</Text>
-          // )
-          <FlatList
-            data={data}
-            renderItem={({ item }) => <ProductCardView item={item} />}
-            keyExtractor={(item) => item._id}
-            contentContainerStyle={{ columnGap: SIZES.medium }}
-            horizontal
-          />
+          <>
+            <FlatList
+              data={data.slice(0, numItemsToShow)}
+              renderItem={({ item }) => <ProductCardView item={item} />}
+              keyExtractor={(item) => item._id}
+              contentContainerStyle={{ columnGap: SIZES.medium }}
+              numColumns={2}
+            />
+            {numItemsToShow < data.length ? (
+              <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMoreItems}>
+                <Text style={styles.btnText}>Load more</Text>
+              </TouchableOpacity>
+            ) : null}
+          </>
         )}
       </View>
     </View>
@@ -37,6 +46,7 @@ const ProductRow = () => {
 };
 
 export default ProductRow;
+
 
 const styles = StyleSheet.create({
   container: {
@@ -60,5 +70,19 @@ const styles = StyleSheet.create({
   },
   cardsContainer: {
     marginTop: SIZES.medium,
+  },
+  loadMoreBtn: {
+    padding: 10,
+    backgroundColor: COLORS.primary,
+    borderRadius: 4,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 10,
+  },
+  btnText: {
+    color: 'white',
+    fontSize: 15,
+    textAlign: 'center',
   },
 });

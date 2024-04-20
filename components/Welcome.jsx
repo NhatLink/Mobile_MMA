@@ -16,9 +16,11 @@ const Welcome = () => {
 
   return (
     <View>
-      <View style={styles.container}>
-        <Text style={styles.welcomeTxt}> Find The Most</Text>
-        <Text style={styles.welcomeMessage}>Luxurious Furniture</Text>
+      <View>
+        <View style={styles.container}>
+          <Text style={styles.welcomeTxt}>Find The Most</Text>
+          <Text style={styles.welcomeMessage}>Luxurious Furniture</Text>
+        </View>
       </View>
 
       <View style={styles.searchContainer}>
@@ -39,7 +41,7 @@ const Welcome = () => {
           />
         </View>
 
-        <TouchableOpacity style={styles.searchBtn} onPress={() => {}}>
+        <TouchableOpacity style={styles.searchBtn} onPress={() => { }}>
           <Ionicons
             name="camera-outline"
             size={SIZES.xLarge}
@@ -65,8 +67,9 @@ const styles = StyleSheet.create({
   },
   welcomeMessage: {
     fontFamily: "bold",
-    fontSize: SIZES.xxLarge - 6,
+    fontSize: SIZES.xxLarge - 10,
     color: COLORS.primary,
+    marginTop: SIZES.xSmall,
   },
 
   searchContainer: {

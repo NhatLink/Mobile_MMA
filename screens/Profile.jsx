@@ -132,7 +132,7 @@ const Profile = ({ navigation }) => {
             {userLogin === false ? (
               <TouchableOpacity onPress={() => navigation.navigate("Login")}>
                 <View style={styles.loginBtn}>
-                  <Text style={styles.menuItemText}>LOGIN </Text>
+                  <Text style={styles.menuItemText}>LOGIN</Text>
                 </View>
               </TouchableOpacity>
             ) : (
@@ -230,6 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.secondary,
     padding: 2,
     borderWidth: 0.4,
+    paddingRight: 20,
     borderRadius: SIZES.xxLarge,
     borderColor: COLORS.primary,
   },

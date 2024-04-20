@@ -533,10 +533,12 @@ const Details = ({ navigation }) => {
                 </Text>
                 {filteredFeedbacks?.map((feedback, index) => (
                   <View key={index} style={styles.feedback}>
+                    <View style={styles.feedbackName}>
                     <Text style={styles.author}>{feedback?.userName}</Text>
                     <Text style={styles.date}>
                       {new Date(feedback?.timestamp).toLocaleDateString()}
                     </Text>
+                    </View>
                     <StarRating rating={feedback?.rating} />
                     <Text style={styles.feedbackText}>{feedback?.content}</Text>
                   </View>
@@ -681,26 +683,41 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   feedbackSection: {
-    marginTop: 0,
-    marginBottom: 20,
+    marginVertical: 10,
+    paddingHorizontal: 20,
+  },
+  feedbackName: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    columnGap: "10px"
   },
   feedback: {
-    marginTop: 10,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    marginBottom: 20,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+  },
+  totalFeedbackText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   feedbackText: {
     fontSize: 16,
     color: "#666",
   },
   author: {
-    fontSize: 18,
-    fontStyle: "italic",
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
   },
   date: {
     fontSize: 12,
-    color: "#999",
+    color: '#666',
+    marginBottom: 5,
   },
   icon: { position: "absolute", top: 10, right: 10 },
   filterButton: {

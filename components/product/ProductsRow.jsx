@@ -70,7 +70,7 @@ export default ProductRow;
 const styles = StyleSheet.create({
   container: {
     marginTop: SIZES.small,
-    marginBottom: 200,
+    marginBottom: 130,
   },
   header: {
     flexDirection: "row",

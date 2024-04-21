@@ -43,7 +43,7 @@ const Details = ({ navigation }) => {
   const [error, setError] = useState("");
   // const [userLogin, setUserLogin] = useState(false);
   const [currentImage, setCurrentImage] = useState();
-  const [feedbackVisible, setFeedbackVisible] = useState(true);
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [filteredFeedbacks, setFilteredFeedbacks] = useState([]);
   const [selectedRating, setSelectedRating] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -170,7 +170,8 @@ const Details = ({ navigation }) => {
       const response = await axios.get(
         `${baseUrl}/feedback/getFeedback/${product}`
       );
-      setDataFeedback(response.data.feedbacks);
+      setDataFeedback(response?.data?.feedbacks);
+      setFilteredFeedbacks(response?.data?.feedbacks);
       setError("");
     } catch (error) {
       setError("Failed to fetch data");
@@ -280,9 +281,9 @@ const Details = ({ navigation }) => {
       setCount(count - 1);
     }
   };
-  useEffect(() => {
-    setFilteredFeedbacks(dataFeedback);
-  }, [dataFeedback]);
+  // useEffect(() => {
+  //   setFilteredFeedbacks(dataFeedback);
+  // }, [dataFeedback]);
   const filterFeedbacksByRating = (rating) => {
     setSelectedRating(rating);
     if (rating === null) {
@@ -293,6 +294,7 @@ const Details = ({ navigation }) => {
       );
     }
   };
+
   return (
     <View style={styles.container}>
       {/* {paymentUrl ? (
@@ -400,15 +402,7 @@ const Details = ({ navigation }) => {
           <TouchableOpacity onPress={() => setModalVisible(true)}>
             <View style={{ marginBottom: 10 }}>
               <View style={styles.location}>
-                <View
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
-                    columnGap: "10px"
-                  }}
-                >
+                <View style={{ display: "flex", flexDirection: "row" }}>
                   <Ionicons name="location-outline" size={20} color="black" />
                   <Text> {data?.product_location}</Text>
                 </View>
@@ -505,95 +499,90 @@ const Details = ({ navigation }) => {
         </View>
         <TouchableOpacity
           style={styles.feedbackHeader}
-          onPress={() => setFeedbackVisible(true)}
+          onPress={() => setFeedbackVisible(!feedbackVisible)}
         >
           <Text style={styles.feedbackTitle}>Feedback</Text>
-          {/* <FontAwesome5
+          <FontAwesome5
             name={feedbackVisible ? "chevron-down" : "chevron-up"}
             size={18}
             color="#000"
-          /> */}
+          />
         </TouchableOpacity>
-        {feedbackVisible && (
-          <>
-            <View style={styles.ratingContainer}>
-              <StarRating
-                rating={
-                  dataFeedback?.length > 0
-                    ? dataFeedback?.reduce(
-                        (acc, curr) => acc + curr.rating,
-                        0
-                      ) / dataFeedback?.length
-                    : 0
-                }
-              />
-              <Text style={styles.averageRatingText}>
-                {dataFeedback?.length > 0
-                  ? (
-                      dataFeedback?.reduce(
-                        (acc, curr) => acc + curr.rating,
-                        0
-                      ) / dataFeedback?.length
-                    ).toFixed(1) + "/5.0"
-                  : "No ratings"}
-              </Text>
-              <Text style={styles.totalFeedbackText}>
-                {dataFeedback?.length > 0
-                  ? "(" + dataFeedback?.length + " reviews)"
-                  : "(0 review)"}
-              </Text>
-            </View>
+        {/* {feedbackVisible && (
+          <> */}
+        <View style={styles.ratingContainer}>
+          <StarRating
+            rating={
+              dataFeedback?.length > 0
+                ? dataFeedback?.reduce((acc, curr) => acc + curr.rating, 0) /
+                  dataFeedback?.length
+                : 0
+            }
+          />
+          <Text style={styles.averageRatingText}>
+            {dataFeedback?.length > 0
+              ? (
+                  dataFeedback?.reduce((acc, curr) => acc + curr.rating, 0) /
+                  dataFeedback?.length
+                ).toFixed(1) + "/5.0"
+              : "No ratings"}
+          </Text>
+          <Text style={styles.totalFeedbackText}>
+            {dataFeedback?.length > 0
+              ? "(" + dataFeedback?.length + " reviews)"
+              : "(0 review)"}
+          </Text>
+        </View>
 
-            <View style={styles.filtersContainer}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <TouchableOpacity
-                  style={styles.filterButton}
-                  onPress={() => filterFeedbacksByRating(null)}
-                >
-                  <View style={styles.filterContent}>
-                    <FontAwesome name="star" size={16} color="gold" />
-                    <Text style={styles.filterText}>All</Text>
-                  </View>
-                </TouchableOpacity>
-                {[5, 4, 3, 2, 1].map((rating) => (
-                  <TouchableOpacity
-                    key={rating}
-                    style={[
-                      styles.filterButton,
-                      selectedRating === rating && styles.selectedFilterButton,
-                    ]}
-                    onPress={() => filterFeedbacksByRating(rating)}
-                  >
-                    <View style={styles.filterContent}>
-                      <FontAwesome name="star" size={16} color="gold" />
-                      <Text style={styles.filterText}>
-                        {rating} Star{rating > 1 ? "s" : ""}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            <View style={styles.feedbackSection}>
-              <Text style={styles.totalFeedbackText}>
-                Feedbacks: {filteredFeedbacks?.length}
-              </Text>
-              {filteredFeedbacks?.map((feedback, index) => (
-                <View key={index} style={styles.feedback}>
-                  <View style={styles.feedbackName}>
-                    <Text style={styles.author}>{feedback?.userName}</Text>
-                    <Text style={styles.date}>
-                      {new Date(feedback?.timestamp).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <StarRating rating={feedback?.rating} />
-                  <Text style={styles.feedbackText}>{feedback?.content}</Text>
+        <View style={styles.filtersContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={() => filterFeedbacksByRating(null)}
+            >
+              <View style={styles.filterContent}>
+                <FontAwesome name="star" size={16} color="gold" />
+                <Text style={styles.filterText}>All</Text>
+              </View>
+            </TouchableOpacity>
+            {[5, 4, 3, 2, 1].map((rating) => (
+              <TouchableOpacity
+                key={rating}
+                style={[
+                  styles.filterButton,
+                  selectedRating === rating && styles.selectedFilterButton,
+                ]}
+                onPress={() => filterFeedbacksByRating(rating)}
+              >
+                <View style={styles.filterContent}>
+                  <FontAwesome name="star" size={16} color="gold" />
+                  <Text style={styles.filterText}>
+                    {rating} Star{rating > 1 ? "s" : ""}
+                  </Text>
                 </View>
-              ))}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={styles.feedbackSection}>
+          <Text style={styles.totalFeedbackText}>
+            Feedbacks: {filteredFeedbacks?.length}
+          </Text>
+
+          {filteredFeedbacks?.map((feedback, index) => (
+            <View key={index} style={styles.feedback}>
+              <Text style={styles.author}>{feedback?.userName}</Text>
+              <Text style={styles.date}>
+                {new Date(feedback?.timestamp).toLocaleDateString()}
+              </Text>
+              <StarRating rating={feedback?.rating} />
+              <Text style={styles.feedbackText}>{feedback?.content}</Text>
             </View>
-          </>
-        )}
+          ))}
+        </View>
+        {/* </>
+        )} */}
       </ScrollView>
       {/* )} */}
     </View>
@@ -615,7 +604,7 @@ const styles = StyleSheet.create({
   },
   location: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: COLORS.secondary,
     padding: 5,
@@ -729,7 +718,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
     marginBottom: 20,
-    marginLeft: 15,
   },
   feedbackTitle: {
     fontSize: 20,
@@ -755,9 +743,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   totalFeedbackText: {
-    fontSize: 18,
+    // fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
+    // marginLeft: 10,
   },
   feedbackText: {
     fontSize: 14,
@@ -815,6 +804,7 @@ const styles = StyleSheet.create({
   ratingContainer: {
     flexDirection: "row",
     backgroundColor: "#f0f0f0",
+    marginLeft: 10,
   },
   averageRatingText: {
     marginLeft: 5,

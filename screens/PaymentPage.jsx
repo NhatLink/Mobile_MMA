@@ -16,7 +16,7 @@ const PaymentPage = () => {
       // Xử lý khi trả về URL thành công
       setPaymentUrl(null);
       Alert.alert("Success", "Payment successful", [
-        { text: "OK", onPress: () => navigation.navigate("Bottom Navigation") }, // Thêm hành động này
+        { text: "OK", onPress: () => navigation.navigate("Orders") }, // Thêm hành động này
       ]);
     }
     if (event.url.includes(`${baseUrl}/order/responseCancelPayPal`)) {

@@ -39,17 +39,16 @@ export default ProductCardView;
 
 const styles = StyleSheet.create({
   container: {
-    width: 190,
+    width: 180,
     height: 260,
-    marginStart: 3,
-    marginEnd: 5,
+    marginEnd: 10,
     marginVertical: SIZES.medium,
     borderRadius: SIZES.small,
     backgroundColor: COLORS.secondary,
   },
   imageContainer: {
     flex: 1,
-    width: 175,
+    width: 165,
     marginLeft: SIZES.medium / 2,
     marginTop: SIZES.medium / 2,
     borderRadius: SIZES.small,

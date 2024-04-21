@@ -1,52 +1,53 @@
-
-import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
-import React, { useState } from 'react';
-import { SIZES, COLORS, SHADOWS } from '../../constants';
-import { MaterialCommunityIcons } from '@expo/vector-icons'; 
-
+import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
+import React, { useState } from "react";
+import { SIZES, COLORS, SHADOWS } from "../../constants";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const OrderTile = ({ item }) => {
-  
   return (
-
-    <View >
-        <TouchableOpacity
-          onPress={() => {}}
-          style={styles.container}
-          
-        >
+    <View>
+      <TouchableOpacity onPress={() => {}} style={styles.container}>
+        <View style={styles.containerProduct}>
           <View style={styles.imageContainer}>
             <Image
-              source={{ uri: item.productId.imageUrl }}
-              resizeMode='cover'
+              source={{ uri: item?.order?.product_id?.image[0] }}
+              resizeMode="cover"
               style={styles.productImg}
             />
           </View>
           <View style={styles.textContainer}>
             <Text style={styles.productTxt} numberOfLines={1}>
-              {item.productId.title}
+              {item?.order?.product_id?.productName}
             </Text>
             <Text style={styles.supplierTxt} numberOfLines={1}>
-              {item.productId.supplier}
+              Quantity: {item?.order?.quantity}
             </Text>
             <Text style={styles.supplierTxt} numberOfLines={1}>
-              ${item.productId.price} * {item.quantity}
+              Total Price: {item?.order?.totalPrice}
             </Text>
           </View>
-          <View>
-            <TouchableOpacity onPress={() => { }} style={styles.checkoutBtn}>
-              <Text style={styles.checkOutText}>{item.payment_status} </Text>
-            </TouchableOpacity>
+        </View>
 
-            <View style={styles.orderRow}>
-            <MaterialCommunityIcons name="truck-fast-outline" size={16} color="gray" />
-              <Text style={styles.totalText}>  {item.delivery_status}</Text>
-            </View>
+        <View style={styles.containerDelivery}>
+          <View style={styles.checkoutBtn}>
+            <Text style={styles.checkOutText}>{item?.delivery?.status}</Text>
           </View>
-          </TouchableOpacity>
+
+          <View style={styles.orderRow}>
+            <MaterialCommunityIcons
+              name="truck-fast-outline"
+              size={16}
+              color="gray"
+            />
+            <Text style={styles.totalText}>
+              {item?.shipper?.shipperName} - {item?.shipper?.phone}{" "}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
     </View>
-  )
-}
+  );
+};
 
 export default OrderTile;
 
@@ -54,13 +55,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "space-between",
-    alignItems: "center",
-    flexDirection: "row",
+    alignItems: "flex-start",
+    flexDirection: "column",
     padding: SIZES.medium,
     borderRadius: SIZES.small,
     backgroundColor: "#FFF",
     ...SHADOWS.medium,
     shadowColor: COLORS.white,
+  },
+  containerProduct: {
+    flex: 1,
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexDirection: "row",
+  },
+  containerDelivery: {
+    flex: 1,
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexDirection: "row",
+    maxWidth: 200,
   },
   imageContainer: {
     width: 70,
@@ -73,7 +87,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 65,
     borderRadius: SIZES.small,
-
   },
   textContainer: {
     flex: 1,
@@ -94,30 +107,31 @@ const styles = StyleSheet.create({
   checkOutText: {
     paddingHorizontal: 10,
     fontSize: SIZES.small,
-    fontWeight: '500',
+    fontWeight: "500",
     letterSpacing: 1,
     color: COLORS.lightWhite,
-    textTransform: 'uppercase'
+    textTransform: "uppercase",
   },
   checkoutBtn: {
-    width: '100%',
-    height: '35%',
+    width: "100%",
+    height: "100%",
     backgroundColor: COLORS.primary,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-
+    justifyContent: "center",
+    alignItems: "center",
+    maxWidth: 140,
+    maxHeight: 20,
   },
   orderRow: {
-    padding: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingLeft: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   totalText: {
-    fontFamily: 'medium',
+    fontFamily: "medium",
     fontSize: SIZES.small,
     color: COLORS.gray,
-    textTransform: 'uppercase'
-  }
-})
+    textTransform: "uppercase",
+  },
+});

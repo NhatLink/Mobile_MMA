@@ -1,42 +1,50 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
+import { useState, useEffect } from "react";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { baseUrl } from "../utils/IP";
 const fetchOrders = () => {
-    const [data, setData] = useState([]);
-    const [isLoading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+  const [data, setData] = useState([]);
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-    const fetchData = async () => {
-        const id = await AsyncStorage.getItem('id');
-        console.log(id);
-        setLoading(true)
+  const fetchData = async () => {
+    setLoading(true);
 
-        try {
-            const response = await axios.get(`http://localhost:3000/api/orders/${JSON.parse(id)}`);
- 
-            setData(response.data);
+    try {
+      const id = await AsyncStorage.getItem("id");
+      const accessToken = await AsyncStorage.getItem("accessToken");
+      if (!id || !accessToken) {
+        throw new Error("Authentication required.");
+      }
 
-            setLoading(false);
-        } catch (error) {
-            setError(error);
-        } finally{
-           setLoading(false);
-        }
+      const instance = axios.create({
+        headers: { Authorization: `Bearer ${JSON.parse(accessToken)}` },
+      });
+
+      const response = await instance.get(
+        `${baseUrl}/order/getHistory/${JSON.parse(id)}`
+      );
+
+      setData(response.data);
+      console.log(response.data);
+      setLoading(false);
+    } catch (error) {
+      setError(error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    useEffect(() => {
-        fetchData();
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-    }, []);
+  const refetch = () => {
+    setLoading(true);
+    fetchData();
+  };
 
-    const refetch = () => {
-        setLoading(true);
-        fetchData();
-    }
-
-    return {data, isLoading, error, refetch}
-}
+  return { data, isLoading, error, refetch };
+};
 
 export default fetchOrders;

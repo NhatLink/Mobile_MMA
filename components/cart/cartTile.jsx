@@ -85,6 +85,30 @@ const CartTile = ({ item }) => {
       { cancelable: true }
     );
   };
+
+  const updateCart = async () => {
+    const id = await AsyncStorage.getItem("id");
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    if (!id || !accessToken) {
+      throw new Error("Authentication required.");
+    }
+    try {
+      const instance = axios.create({
+        headers: { Authorization: `Bearer ${JSON.parse(accessToken)}` },
+      });
+      const data = {
+        quantity: count,
+        price: item?.order?.product_id?.price,
+      };
+      const endpoint = `${baseUrl}/order/updateOrder/${item?.order?._id}`;
+      await instance.put(endpoint, data);
+      refetch();
+      // navigation.navigate("Cart");
+    } catch (error) {
+      console.error("Failed to delete cart item:", error);
+    }
+  };
+
   const createCheckoutSession = async () => {
     const id = await AsyncStorage.getItem("id");
     const accessToken = await AsyncStorage.getItem("accessToken");
@@ -122,14 +146,41 @@ const CartTile = ({ item }) => {
     }
   };
 
-  const handlePress = () => {
-    if (userLogin) {
-      createCheckoutSession();
-    } else {
-      // Navigate to the Login page when hasId is false
+  // const handlePress = () => {
+  //   if (userLogin) {
+  //     createCheckoutSession();
+  //   } else {
+  //     // Navigate to the Login page when hasId is false
+  //     navigation.navigate("Login");
+  //   }
+  // };
+
+  const handlePress = async () => {
+    if (!userLogin) {
       navigation.navigate("Login");
+      return;
+    }
+
+    // Kiểm tra xem có cần cập nhật giỏ hàng không
+    if (count !== item?.order?.quantity) {
+      try {
+        // Cập nhật giỏ hàng trước
+        await updateCart();
+        // Sau khi cập nhật xong, tiếp tục với việc tạo phiên thanh toán
+        await createCheckoutSession();
+      } catch (error) {
+        console.error(
+          "Error while updating cart or creating checkout session:",
+          error
+        );
+        Alert.alert("Error", error.message || "Error during the process");
+      }
+    } else {
+      // Nếu số lượng không thay đổi, chỉ cần tạo phiên thanh toán
+      await createCheckoutSession();
     }
   };
+
   const increment = () => {
     setCount(count + 1);
   };
@@ -194,9 +245,15 @@ const CartTile = ({ item }) => {
               Store: {item?.order?.store_id?.storeName} -{" "}
               {item?.order?.store_id?.location}
             </Text>
+            {/* <Text style={styles.supplierTxt} numberOfLines={1}>
+              
+              Total price= ${item?.order?.totalPrice}
+            </Text> */}
             <Text style={styles.supplierTxt} numberOfLines={1}>
-              {/* ${item.product_id.price} * {item.quantity} = ${item.totalPrice} */}
-              Total price= ${item?.totalPrice}
+              Total price= $
+              {item?.order?.product_id?.price && count
+                ? (item.order.product_id.price * count).toFixed(2)
+                : "N/A"}
             </Text>
           </View>
           <View>
@@ -229,9 +286,15 @@ const CartTile = ({ item }) => {
               ))}
             </ScrollView>
             <Text>Price: ${item?.order?.product_id?.price}</Text>
-            <Text>Quantity: {item?.order?.quantity}</Text>
+            <Text>Quantity: {count}</Text>
             <Text>Location: {item?.order?.store_id?.location}</Text>
-            <Text>Total Price: ${item?.order?.totalPrice}</Text>
+            {/* <Text>Total Price: ${item?.order?.totalPrice}</Text> */}
+            <Text>
+              Total price: $
+              {item?.order?.product_id?.price && count
+                ? (item.order.product_id.price * count).toFixed(2)
+                : "N/A"}
+            </Text>
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity
@@ -360,5 +423,12 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 20,
     elevation: 2,
+  },
+  rating: {
+    // top: SIZES.large,
+    flexDirection: "row",
+    // justifyContent: "flex-end",
+    // alignItems: "center",
+    // marginHorizontal: SIZES.large,
   },
 });

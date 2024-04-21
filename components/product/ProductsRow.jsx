@@ -5,9 +5,9 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
   ActivityIndicator,
-  Button, // Import Button
+  Button,
+  ScrollView,
 } from "react-native";
 import { COLORS, SIZES } from "../../constants";
 import useFetch from "../../hook/useFetch";
@@ -15,38 +15,57 @@ import ProductCardView from "../ProductViewCard";
 
 const ProductRow = () => {
   const { data, isLoading, error } = useFetch();
-  const [numItemsToShow, setNumItemsToShow] = useState(4);
+  const [numItemsToShow, setNumItemsToShow] = useState(4); // Trạng thái để theo dõi số lượng sản phẩm hiện đang được hiển thị
 
-  const loadMoreItems = () => setNumItemsToShow(numItemsToShow + 4);
+  const loadMore = () => {
+    setNumItemsToShow(numItemsToShow + 4); // Tăng số lượng sản phẩm được hiển thị lên 4
+  };
+
+  // Render các cặp sản phẩm
+  const renderProductPairs = () => {
+    const pairs = [];
+    for (let i = 0; i < numItemsToShow && i < data.length; i += 2) {
+      pairs.push(
+        <View style={styles.productPair} key={i}>
+          <ProductCardView item={data[i]} />
+          {/* Kiểm tra xem có sản phẩm thứ hai trong cặp không */}
+          {i + 1 < numItemsToShow && i + 1 < data.length && (
+            <ProductCardView item={data[i + 1]} />
+          )}
+        </View>
+      );
+    }
+    return pairs;
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.cardsContainer}>
-        {isLoading ? (
-          <ActivityIndicator size="large" colors={COLORS.primary} />
-        ) : (
-          <>
-            <FlatList
-              data={data.slice(0, numItemsToShow)}
-              renderItem={({ item }) => <ProductCardView item={item} />}
-              keyExtractor={(item) => item._id}
-              contentContainerStyle={{ columnGap: SIZES.medium }}
-              numColumns={2}
-            />
-            {numItemsToShow < data.length ? (
-              <TouchableOpacity style={styles.loadMoreBtn} onPress={loadMoreItems}>
-                <Text style={styles.btnText}>Load more</Text>
-              </TouchableOpacity>
-            ) : null}
-          </>
-        )}
-      </View>
+      <ScrollView>
+        <View style={styles.cardsContainer}>
+          {isLoading ? (
+            <ActivityIndicator size="large" colors={COLORS.primary} />
+          ) : error ? (
+            <Text>Something went south</Text>
+          ) : (
+            <>
+              {renderProductPairs()}
+              {data.length > numItemsToShow && (
+                <TouchableOpacity
+                  style={styles.loadMoreButton}
+                  onPress={loadMore}
+                >
+                  <Text style={styles.loadMoreText}>LOAD MORE</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 };
 
 export default ProductRow;
-
 
 const styles = StyleSheet.create({
   container: {
@@ -71,18 +90,20 @@ const styles = StyleSheet.create({
   cardsContainer: {
     marginTop: SIZES.medium,
   },
-  loadMoreBtn: {
-    padding: 10,
-    backgroundColor: COLORS.primary,
-    borderRadius: 4,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: 10,
+  productPair: {
+    flexDirection: "row", // Hiển thị các sản phẩm trong một cặp theo hàng ngang
+    justifyContent: "space-between",
+    marginBottom: SIZES.medium, // Khoảng cách giữa các cặp sản phẩm
   },
-  btnText: {
-    color: 'white',
-    fontSize: 15,
-    textAlign: 'center',
+  loadMoreButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.lightGray,
+    paddingVertical: SIZES.medium,
+    marginTop: SIZES.medium,
+  },
+  loadMoreText: {
+    fontSize: SIZES.medium,
+    color: COLORS.primary,
   },
 });

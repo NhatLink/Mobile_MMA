@@ -39,23 +39,26 @@ export default ProductCardView;
 
 const styles = StyleSheet.create({
   container: {
-    width: 182,
-    height: 240,
-    marginEnd: 22,
-    borderRadius: SIZES.medium,
+    width: 190,
+    height: 260,
+    marginStart: 3,
+    marginEnd: 5,
+    marginVertical: SIZES.medium,
+    borderRadius: SIZES.small,
     backgroundColor: COLORS.secondary,
   },
   imageContainer: {
     flex: 1,
-    width: 170,
-    marginLeft: SIZES.small / 2,
-    marginTop: SIZES.small / 2,
+    width: 175,
+    marginLeft: SIZES.medium / 2,
+    marginTop: SIZES.medium / 2,
     borderRadius: SIZES.small,
     overflow: "hidden",
   },
   image: {
     aspectRatio: 1,
     resizeMode: "cover",
+    borderRadius: SIZES.small,
   },
   detailsContainer: {
     padding: SIZES.small,

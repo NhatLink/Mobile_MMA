@@ -3,16 +3,24 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import { useCallback } from "react";
-import BottomTabNavigation from './navigation/BottomTabNavigation';
-import { Cart, Favorites, Details, Products, LoginPage, Signup, Profile } from './screens';
+import BottomTabNavigation from "./navigation/BottomTabNavigation";
+import {
+  Cart,
+  Favorites,
+  Details,
+  Products,
+  LoginPage,
+  Signup,
+  Profile,
+  PaymentPage,
+} from "./screens";
 import Orders from "./screens/Orders";
-
+import { PaymentProvider } from "./hook/PaymentContext";
 const Stack = createNativeStackNavigator();
 //we are going creates a native stack navigator  using the createNativeStackNavigator function.
 
 // Defining the main App component
 export default function App() {
-
   // Step One
   // Loading custom fonts using the useFonts hook
   const [fontsLoaded] = useFonts({
@@ -21,13 +29,12 @@ export default function App() {
     bold: require("./assets/fonts/Poppins-Bold.ttf"), // Loading a font file for bold style
     semibold: require("./assets/fonts/Poppins-SemiBold.ttf"), // Loading a font file for semi-bold style
     medium: require("./assets/fonts/Poppins-Medium.ttf"), // Loading a font file for medium style
-    extrabold: require("./assets/fonts/Poppins-ExtraBold.ttf") // Loading a font file for extra bold style
-  })
+    extrabold: require("./assets/fonts/Poppins-ExtraBold.ttf"), // Loading a font file for extra bold style
+  });
   // Defining a callback function to be called when the root view layout changes
   const onLayoutRootView = useCallback(async () => {
     // Checking if the fonts have been loaded
     if (fontsLoaded) {
-
       // Hiding the splash screen asynchronously
       await SplashScreen.hideAsync();
     }
@@ -40,71 +47,68 @@ export default function App() {
   }
 
   return (
-    //  1.   // Wrapping the app with the NavigationContainer component
-    //  this serves as a container or wrapper that holds the navigation state and provides an essential context for navigation within your app
+    <PaymentProvider>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Bottom Navigation"
+            component={BottomTabNavigation}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Details"
+            component={Details}
+            options={{ headerShown: false }}
+          />
 
-    //  2. //  Stack navigator the one we created on top can be used to define screen components 
-    // and navigation options. in short this component which manages the child screens.
+          <Stack.Screen
+            name="Cart"
+            component={Cart}
+            options={{ headerShown: false }}
+          />
 
+          <Stack.Screen
+            name="Orders"
+            component={Orders}
+            options={{ headerShown: false }}
+          />
 
-    //  3. // To add Screens to our stack we use Stack.Screen component
+          <Stack.Screen
+            name="Login"
+            component={LoginPage}
+            options={{ headerShown: false }}
+          />
 
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name='Bottom Navigation'
-          component={BottomTabNavigation}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name='Details'
-          component={Details}
-          options={{ headerShown: false }}
-        />
+          <Stack.Screen
+            name="Signup"
+            component={Signup}
+            options={{ headerShown: false }}
+          />
 
-        <Stack.Screen
-          name='Cart'
-          component={Cart}
-          options={{ headerShown: false }}
-        />
+          <Stack.Screen
+            name="New-Rivals"
+            component={Products}
+            options={{ headerShown: false }}
+          />
 
-        <Stack.Screen
-          name='Orders'
-          component={Orders}
-          options={{ headerShown: false }}
-        />
+          <Stack.Screen
+            name="Favorites"
+            component={Favorites}
+            options={{ headerShown: false }}
+          />
 
-        <Stack.Screen
-          name='Login'
-          component={LoginPage}
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name='Signup'
-          component={Signup}
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name='New-Rivals'
-          component={Products}
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name='Favorites'
-          component={Favorites}
-          options={{ headerShown: false }}
-        />
-
-<Stack.Screen
-          name='Profile'
-          component={Profile}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+          <Stack.Screen
+            name="Profile"
+            component={Profile}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="PaymentPage"
+            component={PaymentPage}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </PaymentProvider>
   );
 }
-

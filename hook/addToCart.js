@@ -1,40 +1,36 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useState, useEffect } from "react";
-const addToCart = async (productId, quantity) => {
-  const [userLogin, setUserLogin] = useState(false);
-  useEffect(() => {
-    checkUserExistence();
-  }, []);
-  const checkUserExistence = async () => {
-    const id = await AsyncStorage.getItem("id");
-    const accessToken = await AsyncStorage.getItem("accessToken");
-    console.log("token", accessToken);
-    console.log("id", id);
-    const userID = `user${JSON.parse(id)}`;
-    try {
-      const userData = await AsyncStorage.getItem(userID);
-      if (userData !== null) {
-        setUserLogin(true);
-      }
-      // else {
-      //   navigation.navigate("Login");
-      // }
-    } catch (error) {
-      console.error("Error retrieving user data:", error);
-    }
-  };
+import { baseUrl } from "../utils/IP";
+
+const addToCart = async (productId, storeId, price, quantity) => {
   try {
     const id = await AsyncStorage.getItem("id");
-    const endpoint = "http://localhost:3000/api/cart";
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    console.log("accessToken", accessToken);
+    console.log("userId", id);
+    if (!id || !accessToken) {
+      throw new Error("Authentication required.");
+    }
+
+    const instance = axios.create({
+      headers: { Authorization: `Bearer ${JSON.parse(accessToken)}` },
+    });
+
+    const endpoint = `${baseUrl}/order/addToCart`;
     const data = {
-      cartItem: productId,
+      product_id: productId,
       quantity: quantity,
-      userId: JSON.parse(id),
+      user_id: JSON.parse(id),
+      store_id: storeId,
+      price: price,
     };
-    await axios.post(endpoint, data);
+
+    console.log("dataCart", data);
+    const response = await instance.post(endpoint, data);
+    return response.data;
   } catch (error) {
-    throw new Error(error.message);
+    console.error("addToCart error:", error.message);
+    throw error;
   }
 };
 

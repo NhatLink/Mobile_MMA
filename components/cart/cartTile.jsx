@@ -1,64 +1,256 @@
-import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Image,
+  Modal,
+  ScrollView,
+  Alert,
+} from "react-native";
 import React, { useState } from "react";
 import { SIZES, COLORS, SHADOWS } from "../../constants";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, SimpleLineIcons } from "@expo/vector-icons";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
+import { WebView } from "react-native-webview";
+import useUser from "../../hook/useUser";
+import { baseUrl } from "../../utils/IP";
+import { usePayment } from "../../hook/PaymentContext";
+import fetchCart from "../../hook/fetchCart";
 
+// import { ScrollView } from "react-native-gesture-handler";
 
 const CartTile = ({ item }) => {
   const navigation = useNavigation();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [count, setCount] = useState(item?.order?.quantity);
+  // const [paymentUrl, setPaymentUrl] = useState(null);
+  const userLogin = useUser(navigation);
+  const { setPaymentUrl } = usePayment();
+  const toggleModal = () => {
+    setModalVisible(!modalVisible);
+  };
+  const { refetch } = fetchCart();
+  // const deleteCart = async () => {
+  //   const endpoint = `${baseUrl}/order/deleteOrder/${item._id}`;
 
-  deleteCart = async () => {
-    const endpoint = `http://localhost:3000/api/cart/${item._id}`;
-    
+  //   try {
+  //     await axios.delete(endpoint);
+  //     await AsyncStorage.removeItem("cartCount");
+
+  //     navigation.navigate("Cart");
+  //   } catch (error) {
+  //     console.error("Failed to delete cart item:", error);
+  //   }
+  // };
+
+  const deleteCart = async () => {
+    Alert.alert(
+      "Confirm Deletion",
+      `Are you sure you want to delete ${item?.order?.product_id.productName}`,
+      // `Create in date ${item.timestamp}`,
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          onPress: async () => {
+            const id = await AsyncStorage.getItem("id");
+            const accessToken = await AsyncStorage.getItem("accessToken");
+            if (!id || !accessToken) {
+              throw new Error("Authentication required.");
+            }
+
+            const instance = axios.create({
+              headers: { Authorization: `Bearer ${JSON.parse(accessToken)}` },
+            });
+            const endpoint = `${baseUrl}/order/deleteOrder/${item?.order?._id}`;
+
+            try {
+              await instance.delete(endpoint);
+              await AsyncStorage.removeItem("cartCount");
+              refetch();
+              // navigation.navigate("Cart");
+            } catch (error) {
+              console.error("Failed to delete cart item:", error);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+  const createCheckoutSession = async () => {
+    const id = await AsyncStorage.getItem("id");
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    const userID = `user${JSON.parse(id)}`;
+    const body = {
+      user_id: JSON.parse(id),
+      order_id: item?.order?._id,
+      totalPrice: item.order?.totalPrice,
+    };
+
+    console.log("body", body);
     try {
-      await axios.delete(endpoint)
-      await AsyncStorage.removeItem("cartCount")
-      
-      navigation.navigate("Bottom Navigation")
-      
+      const response = await fetch(`${baseUrl}/order/payOrder`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${JSON.parse(accessToken)}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        // Lưu URL thanh toán vào state và mở WebView
+        setPaymentUrl(data.url);
+        console.log("urlPay:", data.url);
+        navigation.navigate("PaymentPage");
+      } else {
+        Alert.alert("Error", "Payment URL not found");
+      }
     } catch (error) {
-      console.error("Failed to delete cart item:", error);
+      console.error("Error during payment:", error);
+      Alert.alert("Error", error.message || "Error during payment process");
     }
   };
 
+  const handlePress = () => {
+    if (userLogin) {
+      createCheckoutSession();
+    } else {
+      // Navigate to the Login page when hasId is false
+      navigation.navigate("Login");
+    }
+  };
+  const increment = () => {
+    setCount(count + 1);
+  };
 
+  const decrement = () => {
+    if (count > 1) {
+      setCount(count - 1);
+    }
+  };
   return (
     <View>
-      <TouchableOpacity style={styles.container}>
-        <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: item.cartItem.imageUrl }}
-            resizeMode="cover"
-            style={styles.productImg}
-          />
-        </View>
-        <View style={styles.textContainer}>
-          <Text style={styles.productTxt} numberOfLines={1}>
-            {item.cartItem.title}
-          </Text>
-          <Text style={styles.supplierTxt} numberOfLines={1}>
-            {item.cartItem.supplier}
-          </Text>
-          <Text style={styles.supplierTxt} numberOfLines={1}>
-            ${item.cartItem.price} * {item.quantity}
-          </Text>
-        </View>
-        <View>
-          <TouchableOpacity
-            style={{ paddingBottom: 20, paddingLeft: 75 }}
-            onPress={()=> deleteCart()}
-          >
-            <AntDesign name="delete" size={18} color="red" />
-          </TouchableOpacity>
+      {/* {paymentUrl ? (
+        // Nếu payment URL đã được set, hiển thị WebView
+        <WebView
+          source={{ uri: paymentUrl }}
+          onNavigationStateChange={(event) => {
+            if (event.url.includes(`${baseUrl}/order/responseSucessPayPal`)) {
+              // Xử lý khi trả về URL thành công
+              setPaymentUrl(null);
+              Alert.alert("Success", "Payment successful");
+            }
+            if (event.url.includes(`${baseUrl}/order/responseCancelPayPal`)) {
+              // Xử lý khi người dùng hủy thanh toán
+              setPaymentUrl(null);
+              Alert.alert("Cancelled", "Payment was cancelled");
+            }
+          }}
+        />
+      ) : ( */}
+      <View>
+        <TouchableOpacity
+          style={styles.container}
+          onPress={() =>
+            navigation.navigate("Details", {
+              product: item?.order?.product_id?._id,
+            })
+          }
+        >
+          <View style={styles.imageContainer}>
+            <Image
+              source={{ uri: item?.order?.product_id?.image[0] }} // Giả sử image là một mảng và bạn muốn hiển thị hình đầu tiên
+              resizeMode="cover"
+              style={styles.productImg}
+            />
+          </View>
+          <View style={styles.textContainer}>
+            <Text style={styles.productTxt} numberOfLines={1}>
+              {item?.order?.product_id?.productName}
+            </Text>
+            <View style={styles.rating}>
+              <TouchableOpacity onPress={() => increment()}>
+                <SimpleLineIcons name="plus" size={20} color="black" />
+              </TouchableOpacity>
+              <Text>
+                {count}/{item?.productQuantityInStore}{" "}
+              </Text>
+              <TouchableOpacity onPress={() => decrement()}>
+                <SimpleLineIcons name="minus" size={20} color="black" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.supplierTxt} numberOfLines={1}>
+              Store: {item?.order?.store_id?.storeName} -{" "}
+              {item?.order?.store_id?.location}
+            </Text>
+            <Text style={styles.supplierTxt} numberOfLines={1}>
+              {/* ${item.product_id.price} * {item.quantity} = ${item.totalPrice} */}
+              Total price= ${item?.totalPrice}
+            </Text>
+          </View>
+          <View>
+            <TouchableOpacity
+              style={{ paddingBottom: 20, paddingLeft: 75 }}
+              onPress={() => deleteCart()}
+            >
+              <AntDesign name="delete" size={18} color="red" />
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => {}} style={styles.checkoutBtn}>
-            <Text style={styles.checkOutText}>CHECKOUT </Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
+            <TouchableOpacity onPress={toggleModal} style={styles.checkoutBtn}>
+              <Text style={styles.checkOutText}>CHECKOUT</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}
+        >
+          <View style={styles.modalView}>
+            <ScrollView horizontal={true} style={styles.imageScrollView}>
+              {item?.order?.product_id?.image?.map((img, index) => (
+                <TouchableOpacity key={index}>
+                  <Image source={{ uri: img }} style={styles.thumbnailImage} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <Text>Price: ${item?.order?.product_id?.price}</Text>
+            <Text>Quantity: {item?.order?.quantity}</Text>
+            <Text>Location: {item?.order?.store_id?.location}</Text>
+            <Text>Total Price: ${item?.order?.totalPrice}</Text>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                onPress={handlePress}
+                style={styles.checkoutBtn}
+              >
+                <Text style={styles.checkOutText}>Confirm</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={toggleModal}
+                style={styles.checkoutBtn}
+              >
+                <Text style={styles.checkOutText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </View>
+      {/* )} */}
     </View>
   );
 };
@@ -115,6 +307,7 @@ const styles = StyleSheet.create({
   },
   checkoutBtn: {
     width: "100%",
+    maxWidth: 100,
     height: "35%",
     backgroundColor: COLORS.primary,
     borderRadius: 20,
@@ -131,5 +324,41 @@ const styles = StyleSheet.create({
     fontFamily: "medium",
     fontSize: SIZES.small,
     color: COLORS.gray,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  imageScrollView: {
+    flexDirection: "row",
+    marginBottom: 10,
+  },
+  thumbnailImage: {
+    width: 100,
+    height: 100,
+    marginRight: 10,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    marginTop: 20,
+  },
+  button: {
+    backgroundColor: "#2196F3",
+    padding: 10,
+    borderRadius: 20,
+    elevation: 2,
   },
 });

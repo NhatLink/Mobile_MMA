@@ -8,7 +8,9 @@ import addToCart from "../hook/addToCart";
 const ProductCardView = ({ item }) => {
   const navigation = useNavigation();
   return (
-    <TouchableOpacity onPress={() => navigation.navigate("Details", { item })}>
+    <TouchableOpacity
+      onPress={() => navigation.navigate("Details", { product: item._id })}
+    >
       <View style={styles.container}>
         <View style={styles.imageContainer}>
           <Image source={{ uri: item.image[0] }} style={styles.image} />

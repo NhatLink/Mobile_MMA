@@ -37,10 +37,10 @@ const Home = () => {
         // setUserLocation(userData.location)
 
         const count = await AsyncStorage.getItem("cartCount");
-
         if (count !== null) {
           const parsedCart = JSON.parse(count);
           setCartCount(parsedCart);
+          console.log("cart count:", parsedCart);
         } else {
           return;
         }

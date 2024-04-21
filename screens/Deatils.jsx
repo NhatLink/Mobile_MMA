@@ -24,12 +24,15 @@ import addToCart from "../hook/addToCart";
 import { WebView } from "react-native-webview";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome, FontAwesome5 } from "@expo/vector-icons";
+import useUser from "../hook/useUser";
 import axios from "axios";
 import Carousel from "react-native-snap-carousel";
+import { usePayment } from "../hook/PaymentContext";
+
 const Details = ({ navigation }) => {
   const route = useRoute();
-  const { item } = route.params;
-  const [paymentUrl, setPaymentUrl] = useState("");
+  const { product } = route.params;
+  // const [paymentUrl, setPaymentUrl] = useState(null);
   const [favorites, setFavorites] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [count, setCount] = useState(1);
@@ -38,88 +41,119 @@ const Details = ({ navigation }) => {
   const [dataStore, setDataStore] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [userLogin, setUserLogin] = useState(false);
+  // const [userLogin, setUserLogin] = useState(false);
   const [currentImage, setCurrentImage] = useState();
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [filteredFeedbacks, setFilteredFeedbacks] = useState([]);
   const [selectedRating, setSelectedRating] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedStore, setSelectedStore] = useState();
+  const userLogin = useUser(navigation);
+  const { setPaymentUrl } = usePayment();
+  console.log("productId", product);
+  const handleAddToCart = async () => {
+    if (userLogin) {
+      try {
+        const response = await addToCart(
+          data?._id,
+          selectedStore?.storeId,
+          data?.price,
+          count
+        );
+        console.log("Added to cart:", response);
+      } catch (error) {
+        console.error("Failed to add to cart:", error);
+      }
+    } else {
+      navigation.navigate("Login");
+    }
+  };
   const createCheckoutSession = async () => {
     const id = await AsyncStorage.getItem("id");
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    const userID = `user${JSON.parse(id)}`;
+    const body = {
+      user_id: JSON.parse(id),
+      product_id: product,
+      store_id: selectedStore?.storeId,
+      quantity: count,
+      price: data?.price,
+    };
 
-    const response = await fetch(
-      "https://paymentorders-production.up.railway.app/stripe/create-checkout-session",
-      {
+    console.log("body", body);
+    try {
+      const response = await fetch(`${baseUrl}/order/buyProduct`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${JSON.parse(accessToken)}`,
         },
-        body: JSON.stringify({
-          userId: JSON.parse(id),
-          cartItems: [
-            // Add your cart items here
-            {
-              name: data?.productName,
-              id: data?._id,
-              price: data?.price,
-              cartQuantity: count,
-              // store: selectedStore
-            },
-          ],
-        }),
-      }
-    );
+        body: JSON.stringify(body),
+      });
 
-    const { url } = await response.json();
-    setPaymentUrl(url);
-  };
-  const onNavigationStateChange = (webViewState) => {
-    const { url } = webViewState;
-    if (url && url.includes("checkout-success")) {
-      navigation.navigate("Bottom Navigation");
-      console.log("Payment successful!");
-    } else if (url && url.includes("cancel")) {
-      navigation.navigate("Bottom Navigation");
-      console.log("Payment canceled!");
+      const data = await response.json();
+
+      if (data.url) {
+        // Lưu URL thanh toán vào state và mở WebView
+        setPaymentUrl(data.url);
+        console.log("urlPay:", data.url);
+        navigation.navigate("PaymentPage");
+      } else {
+        Alert.alert("Error", "Payment URL not found");
+      }
+    } catch (error) {
+      console.error("Error during payment:", error);
+      Alert.alert("Error", error.message || "Error during payment process");
     }
   };
 
+  // const onNavigationStateChange = (webViewState) => {
+  //   const { url } = webViewState;
+  //   if (url && url.includes("checkout-success")) {
+  //     navigation.navigate("Bottom Navigation");
+  //     console.log("Payment successful!");
+  //   } else if (url && url.includes("cancel")) {
+  //     navigation.navigate("Bottom Navigation");
+  //     console.log("Payment canceled!");
+  //   }
+  // };
+
   useEffect(() => {
-    checkUserExistence();
+    // checkUserExistence();
     checkFavorites();
     checkIdInAsyncStorage();
     handleGetDetailProduct();
     handleGetFeedbackProduct();
     handleGetStoreProduct();
   }, []);
-  const checkUserExistence = async () => {
-    const id = await AsyncStorage.getItem("id");
-    const accessToken = await AsyncStorage.getItem("accessToken");
-    const userID = `user${JSON.parse(id)}`;
-    try {
-      const userData = await AsyncStorage.getItem(userID);
-      if (userData !== null) {
-        setUserLogin(true);
-      }
-      // else {
-      //   navigation.navigate("Login");
-      // }
-    } catch (error) {
-      console.error("Error retrieving user data:", error);
-    }
-  };
+  // const checkUserExistence = async () => {
+  //   const id = await AsyncStorage.getItem("id");
+  //   const accessToken = await AsyncStorage.getItem("accessToken");
+  //   const userID = `user${JSON.parse(id)}`;
+  //   try {
+  //     const userData = await AsyncStorage.getItem(userID);
+  //     if (userData !== null) {
+  //       setUserLogin(true);
+  //     }
+  //     // else {
+  //     //   navigation.navigate("Login");
+  //     // }
+  //   } catch (error) {
+  //     console.error("Error retrieving user data:", error);
+  //   }
+  // };
   const handleGetDetailProduct = async () => {
-    if (!item || !item._id) {
+    if (!product) {
       setError("No item ID provided");
       return;
     }
     try {
       const response = await axios.get(
-        `${baseUrl}/product/getProductById/${item._id}`
+        `${baseUrl}/product/getProductById/${product}`
       );
       setData(response.data);
       setCurrentImage(response.data.image[0]);
+      console.log("product", response.data);
       setError("");
     } catch (error) {
       setError("Failed to fetch data");
@@ -128,13 +162,13 @@ const Details = ({ navigation }) => {
   };
 
   const handleGetFeedbackProduct = async () => {
-    if (!item || !item._id) {
+    if (!product) {
       setError("No item ID provided");
       return;
     }
     try {
       const response = await axios.get(
-        `${baseUrl}/feedback/getFeedback/${item._id}`
+        `${baseUrl}/feedback/getFeedback/${product}`
       );
       setDataFeedback(response.data.feedbacks);
       setError("");
@@ -144,13 +178,13 @@ const Details = ({ navigation }) => {
     }
   };
   const handleGetStoreProduct = async () => {
-    if (!item || !item._id) {
+    if (!product) {
       setError("No item ID provided");
       return;
     }
     try {
       const response = await axios.get(
-        `${baseUrl}/productInStore/getListStoreHaveProduct/${item._id}`
+        `${baseUrl}/productInStore/getListStoreHaveProduct/${product}`
       );
       setDataStore(response.data.stores);
       console.log("Store", response.data.stores);
@@ -174,7 +208,7 @@ const Details = ({ navigation }) => {
       const favoritesObj = await AsyncStorage.getItem(favoritesId);
       if (favoritesObj !== null) {
         const favorites = JSON.parse(favoritesObj);
-        if (favorites[item._id]) {
+        if (favorites[product]) {
           setFavorites(true);
         }
       }
@@ -202,7 +236,7 @@ const Details = ({ navigation }) => {
       productName: data?.productName,
       _id: data?._id,
       description: data?.description,
-      image: data?.image.toString(),
+      image: data?.image[0],
       price: data?.price,
     };
 
@@ -260,74 +294,80 @@ const Details = ({ navigation }) => {
     }
   };
   return (
-    <ScrollView style={styles.container}>
-      {paymentUrl ? (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
-          <WebView
-            source={{ uri: paymentUrl }}
-            onNavigationStateChange={onNavigationStateChange}
-          />
-        </SafeAreaView>
-      ) : (
-        <View style={styles.wrapper}>
-          <View style={styles.upperRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons
-                name="chevron-back-circle"
-                size={30}
-                color={COLORS.black}
-              />
+    <View style={styles.container}>
+      {/* {paymentUrl ? (
+        // Nếu payment URL đã được set, hiển thị WebView
+        <WebView
+          source={{ uri: paymentUrl }}
+          onNavigationStateChange={(event) => {
+            if (event.url.includes(`${baseUrl}/order/responseSucessPayPal`)) {
+              // Xử lý khi trả về URL thành công
+              setPaymentUrl(null);
+              Alert.alert("Success", "Payment successful");
+            }
+            if (event.url.includes(`${baseUrl}/order/responseCancelPayPal`)) {
+              // Xử lý khi người dùng hủy thanh toán
+              setPaymentUrl(null);
+              Alert.alert("Cancelled", "Payment was cancelled");
+            }
+          }}
+        />
+      ) : ( */}
+      <ScrollView style={styles.wrapper}>
+        <View style={styles.upperRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons
+              name="chevron-back-circle"
+              size={30}
+              color={COLORS.black}
+            />
+          </TouchableOpacity>
+          {userLogin === true && (
+            <TouchableOpacity onPress={() => addFavorites()}>
+              {favorites ? (
+                <Ionicons name="heart" size={30} color="green" />
+              ) : (
+                <Ionicons name="heart-outline" size={30} color={COLORS.black} />
+              )}
             </TouchableOpacity>
-            {userLogin === true && (
-              <TouchableOpacity onPress={() => addFavorites()}>
-                {favorites ? (
-                  <Ionicons name="heart" size={30} color="green" />
-                ) : (
-                  <Ionicons
-                    name="heart-outline"
-                    size={30}
-                    color={COLORS.black}
-                  />
-                )}
-              </TouchableOpacity>
-            )}
-          </View>
+          )}
+        </View>
 
-          {/* {
+        {/* {
             data?.image?.length > 0 ? (
               <Image source={{ uri: data.image[0] }} style={styles.image} />
             ) : (
               <Text>No image available</Text>
             ) // Or some default image or other placeholder
           } */}
-          <View style={styles.containerImg}>
-            <Image source={{ uri: currentImage }} style={styles.image} />
-          </View>
-          <View style={styles.details}>
-            <ScrollView horizontal={true} style={styles.imageScrollView}>
-              {data?.image?.map((img, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => setCurrentImage(img)}
-                >
-                  <Image source={{ uri: img }} style={styles.thumbnailImage} />
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <View style={styles.titleRow(20, 20, SIZES.width - 44)}>
-              <Text style={styles.title("bold", SIZES.large)}>
-                {data?.productName}
+        <View style={styles.containerImg}>
+          <Image source={{ uri: currentImage }} style={styles.image} />
+        </View>
+        <View style={styles.details}>
+          <ScrollView horizontal={true} style={styles.imageScrollView}>
+            {data?.image?.map((img, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setCurrentImage(img)}
+              >
+                <Image source={{ uri: img }} style={styles.thumbnailImage} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <View style={styles.titleRow(20, 20, SIZES.width - 44)}>
+            <Text style={styles.title("bold", SIZES.large)}>
+              {data?.productName}
+            </Text>
+            <View style={styles.priceWrapper}>
+              <Text style={styles.title("semibold", SIZES.large, 10)}>
+                {" "}
+                $ {data?.price}
               </Text>
-              <View style={styles.priceWrapper}>
-                <Text style={styles.title("semibold", SIZES.large, 10)}>
-                  {" "}
-                  $ {data?.price}
-                </Text>
-              </View>
             </View>
-            <View style={styles.titleRow(0, 5, SIZES.width - 10)}>
-              {/* <View style={styles.rating}> */}
-              {/* <View style={{ flexDirection: "row" }}>
+          </View>
+          <View style={styles.titleRow(0, 5, SIZES.width - 10)}>
+            {/* <View style={styles.rating}> */}
+            {/* <View style={{ flexDirection: "row" }}>
                   {[1, 2, 3, 4, 5].map((index) => (
                     <Ionicons key={index} name="star" size={24} color="gold" />
                   ))}
@@ -337,222 +377,227 @@ const Details = ({ navigation }) => {
                   {" "}
                   (4.9){" "}
                 </Text> */}
-              {/* <Text> Quantity: {selectedStore?.quantity} </Text> */}
-              {/* </View> */}
+            {/* <Text> Quantity: {selectedStore?.quantity} </Text> */}
+            {/* </View> */}
 
-              <View style={styles.rating}>
-                <TouchableOpacity onPress={() => increment()}>
-                  <SimpleLineIcons name="plus" size={20} color="black" />
-                </TouchableOpacity>
-                <Text>
-                  {count}/{selectedStore?.quantity}{" "}
-                </Text>
-                <TouchableOpacity onPress={() => decrement()}>
-                  <SimpleLineIcons name="minus" size={20} color="black" />
-                </TouchableOpacity>
-              </View>
+            <View style={styles.rating}>
+              <TouchableOpacity onPress={() => increment()}>
+                <SimpleLineIcons name="plus" size={20} color="black" />
+              </TouchableOpacity>
+              <Text>
+                {count}/{selectedStore?.quantity}{" "}
+              </Text>
+              <TouchableOpacity onPress={() => decrement()}>
+                <SimpleLineIcons name="minus" size={20} color="black" />
+              </TouchableOpacity>
             </View>
           </View>
+        </View>
 
-          <View style={styles.descriptionWrapper}>
-            <Text style={styles.description}>Description</Text>
-            <Text style={styles.descriptionText}>{data?.description}</Text>
-            <TouchableOpacity onPress={() => setModalVisible(true)}>
-              <View style={{ marginBottom: 10 }}>
-                <View style={styles.location}>
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Ionicons name="location-outline" size={20} color="black" />
-                    <Text> {data?.product_location}</Text>
-                  </View>
+        <View style={styles.descriptionWrapper}>
+          <Text style={styles.description}>Description</Text>
+          <Text style={styles.descriptionText}>{data?.description}</Text>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <View style={{ marginBottom: 10 }}>
+              <View style={styles.location}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Ionicons name="location-outline" size={20} color="black" />
+                  <Text> {data?.product_location}</Text>
+                </View>
 
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    {/* <MaterialCommunityIcons
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  {/* <MaterialCommunityIcons
                     name="truck-delivery-outline"
                     size={20}
                     color="black"
                   />
                   <Text> Free Delivery </Text> */}
 
-                    <View
-                      style={{ flexDirection: "row", alignItems: "center" }}
-                    >
-                      {/* <MaterialCommunityIcons
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    {/* <MaterialCommunityIcons
                         name="truck-delivery-outline"
                         size={20}
                         color="black"
                       /> */}
-                      <Text>
-                        {selectedStore?.location},{selectedStore?.district},
-                        {selectedStore?.province}{" "}
-                      </Text>
-                      {/* <Text> {selectedStore?.quantity} </Text> */}
-                    </View>
-
-                    <Modal
-                      animationType="slide"
-                      transparent={true}
-                      visible={modalVisible}
-                      onRequestClose={() => {
-                        setModalVisible(!modalVisible);
-                      }}
-                    >
-                      <View style={styles.modalView}>
-                        <ScrollView>
-                          {dataStore?.map((store, index) => (
-                            <TouchableOpacity
-                              key={index}
-                              onPress={() => selectStore(store)}
-                              style={styles.storeItemModal}
-                            >
-                              <Text style={styles.textModal}>
-                                {store?.location}, {store?.district},{" "}
-                                {store?.province}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </ScrollView>
-                        <TouchableOpacity
-                          style={[styles.buttonModal, styles.buttonCloseModal]}
-                          onPress={() => setModalVisible(!modalVisible)}
-                        >
-                          <Text style={styles.textStyleModal}>Close</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </Modal>
+                    <Text>
+                      {selectedStore?.location},{selectedStore?.district},
+                      {selectedStore?.province}{" "}
+                    </Text>
+                    {/* <Text> {selectedStore?.quantity} </Text> */}
                   </View>
+
+                  <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => {
+                      setModalVisible(!modalVisible);
+                    }}
+                  >
+                    <View style={styles.modalView}>
+                      <ScrollView>
+                        {dataStore?.map((store, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            onPress={() => selectStore(store)}
+                            style={styles.storeItemModal}
+                          >
+                            <Text style={styles.textModal}>
+                              {store?.location}, {store?.district},{" "}
+                              {store?.province}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                      <TouchableOpacity
+                        style={[styles.buttonModal, styles.buttonCloseModal]}
+                        onPress={() => setModalVisible(!modalVisible)}
+                      >
+                        <Text style={styles.textStyleModal}>Close</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </Modal>
                 </View>
               </View>
-            </TouchableOpacity>
-            <View>
-              <ColorList colors={data?.product_colors} />
             </View>
-
-            <View style={styles.titleRow(0, 0)}>
-              {/* onPress={handlePress} */}
-              <TouchableOpacity style={styles.cartBtn} onPress={handlePress}>
-                <Text
-                  style={styles.title(
-                    "bold",
-                    SIZES.large,
-                    10,
-                    COLORS.lightWhite
-                  )}
-                >
-                  BUY NOW
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.addToCart}
-                onPress={() => addToCart(data?._id, 1)}
-              >
-                <Fontisto
-                  name="shopping-bag"
-                  size={22}
-                  color={COLORS.lightWhite}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={styles.feedbackHeader}
-            onPress={() => setFeedbackVisible(!feedbackVisible)}
-          >
-            <Text style={styles.feedbackTitle}>Feedback</Text>
-            <FontAwesome5
-              name={feedbackVisible ? "chevron-down" : "chevron-up"}
-              size={18}
-              color="#000"
-            />
           </TouchableOpacity>
-          {feedbackVisible && (
-            <>
-              <View style={styles.ratingContainer}>
-                <StarRating
-                  rating={
-                    dataFeedback?.length > 0
-                      ? dataFeedback?.reduce(
-                          (acc, curr) => acc + curr.rating,
-                          0
-                        ) / dataFeedback?.length
-                      : 0
-                  }
-                />
-                <Text style={styles.averageRatingText}>
-                  {dataFeedback?.length > 0
-                    ? (
-                        dataFeedback?.reduce(
-                          (acc, curr) => acc + curr.rating,
-                          0
-                        ) / dataFeedback?.length
-                      ).toFixed(1) + "/5.0"
-                    : "No ratings"}
-                </Text>
-                <Text style={styles.totalFeedbackText}>
-                  {dataFeedback?.length > 0
-                    ? "(" + dataFeedback?.length + " reviews)"
-                    : "(0 review)"}
-                </Text>
-              </View>
+          <View>
+            <ColorList colors={data?.product_colors} />
+          </View>
 
-              <View style={styles.filtersContainer}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.titleRow(0, 0)}>
+            {/* onPress={handlePress} */}
+            <TouchableOpacity style={styles.cartBtn} onPress={handlePress}>
+              <Text
+                style={styles.title("bold", SIZES.large, 10, COLORS.lightWhite)}
+              >
+                BUY NOW
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.addToCart}
+              // onPress={() =>
+              //   addToCart(
+              //     data?._id,
+              //     selectedStore?.storeId,
+              //     data?.price,
+              //     count
+              //   )
+              // }
+              onPress={handleAddToCart}
+            >
+              <Fontisto
+                name="shopping-bag"
+                size={22}
+                color={COLORS.lightWhite}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <TouchableOpacity
+          style={styles.feedbackHeader}
+          onPress={() => setFeedbackVisible(!feedbackVisible)}
+        >
+          <Text style={styles.feedbackTitle}>Feedback</Text>
+          <FontAwesome5
+            name={feedbackVisible ? "chevron-down" : "chevron-up"}
+            size={18}
+            color="#000"
+          />
+        </TouchableOpacity>
+        {feedbackVisible && (
+          <>
+            <View style={styles.ratingContainer}>
+              <StarRating
+                rating={
+                  dataFeedback?.length > 0
+                    ? dataFeedback?.reduce(
+                        (acc, curr) => acc + curr.rating,
+                        0
+                      ) / dataFeedback?.length
+                    : 0
+                }
+              />
+              <Text style={styles.averageRatingText}>
+                {dataFeedback?.length > 0
+                  ? (
+                      dataFeedback?.reduce(
+                        (acc, curr) => acc + curr.rating,
+                        0
+                      ) / dataFeedback?.length
+                    ).toFixed(1) + "/5.0"
+                  : "No ratings"}
+              </Text>
+              <Text style={styles.totalFeedbackText}>
+                {dataFeedback?.length > 0
+                  ? "(" + dataFeedback?.length + " reviews)"
+                  : "(0 review)"}
+              </Text>
+            </View>
+
+            <View style={styles.filtersContainer}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <TouchableOpacity
+                  style={styles.filterButton}
+                  onPress={() => filterFeedbacksByRating(null)}
+                >
+                  <View style={styles.filterContent}>
+                    <FontAwesome name="star" size={16} color="gold" />
+                    <Text style={styles.filterText}>All</Text>
+                  </View>
+                </TouchableOpacity>
+                {[5, 4, 3, 2, 1].map((rating) => (
                   <TouchableOpacity
-                    style={styles.filterButton}
-                    onPress={() => filterFeedbacksByRating(null)}
+                    key={rating}
+                    style={[
+                      styles.filterButton,
+                      selectedRating === rating && styles.selectedFilterButton,
+                    ]}
+                    onPress={() => filterFeedbacksByRating(rating)}
                   >
                     <View style={styles.filterContent}>
                       <FontAwesome name="star" size={16} color="gold" />
-                      <Text style={styles.filterText}>All</Text>
+                      <Text style={styles.filterText}>
+                        {rating} Star{rating > 1 ? "s" : ""}
+                      </Text>
                     </View>
                   </TouchableOpacity>
-                  {[5, 4, 3, 2, 1].map((rating) => (
-                    <TouchableOpacity
-                      key={rating}
-                      style={[
-                        styles.filterButton,
-                        selectedRating === rating &&
-                          styles.selectedFilterButton,
-                      ]}
-                      onPress={() => filterFeedbacksByRating(rating)}
-                    >
-                      <View style={styles.filterContent}>
-                        <FontAwesome name="star" size={16} color="gold" />
-                        <Text style={styles.filterText}>
-                          {rating} Star{rating > 1 ? "s" : ""}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-
-              <View style={styles.feedbackSection}>
-                <Text style={styles.totalFeedbackText}>
-                  Feedbacks: {filteredFeedbacks?.length}
-                </Text>
-                {filteredFeedbacks?.map((feedback, index) => (
-                  <View key={index} style={styles.feedback}>
-                    <Text style={styles.author}>{feedback?.userName}</Text>
-                    <Text style={styles.date}>
-                      {new Date(feedback?.timestamp).toLocaleDateString()}
-                    </Text>
-                    <StarRating rating={feedback?.rating} />
-                    <Text style={styles.feedbackText}>{feedback?.content}</Text>
-                  </View>
                 ))}
-              </View>
-            </>
-          )}
-        </View>
-      )}
-    </ScrollView>
+              </ScrollView>
+            </View>
+
+            <View style={styles.feedbackSection}>
+              <Text style={styles.totalFeedbackText}>
+                Feedbacks: {filteredFeedbacks?.length}
+              </Text>
+              {filteredFeedbacks?.map((feedback, index) => (
+                <View key={index} style={styles.feedback}>
+                  <Text style={styles.author}>{feedback?.userName}</Text>
+                  <Text style={styles.date}>
+                    {new Date(feedback?.timestamp).toLocaleDateString()}
+                  </Text>
+                  <StarRating rating={feedback?.rating} />
+                  <Text style={styles.feedbackText}>{feedback?.content}</Text>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
+      </ScrollView>
+      {/* )} */}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: "center",
+  },
+  webView: {
+    height: "100%",
+    width: "100%",
   },
   wrapper: {
     flex: 1,

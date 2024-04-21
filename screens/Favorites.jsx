@@ -47,7 +47,6 @@ const Favorites = ({ navigation }) => {
     let productId = id;
 
     console.log(productId);
-
     try {
       const existingItem = await AsyncStorage.getItem(favoritesId);
       let favoritesObj = existingItem ? JSON.parse(existingItem) : {};
@@ -56,7 +55,7 @@ const Favorites = ({ navigation }) => {
         // Key exists, so delete it
         delete favoritesObj[productId];
 
-        navigation.goBack();
+        checkFavorites();
       } else {
         console.log(`Key does not exist: ${productId}`);
         navigation.navigate("Home");
@@ -79,42 +78,47 @@ const Favorites = ({ navigation }) => {
         </TouchableOpacity>
         <Text style={styles.title}> Favorites </Text>
       </View>
-
-      <FlatList
-        data={favoritesData}
-        renderItem={({ item }) => (
-          // Render your favorite item here
-          <View>
-            <TouchableOpacity
-              style={styles.favcontainer}
-              onPress={() => navigation.navigate("Details", { item })}
-            >
-              <TouchableOpacity style={styles.imageContainer}>
-                <Image
-                  source={{ uri: item.image }}
-                  resizeMode="cover"
-                  style={styles.productImg}
-                />
+      {favoritesData?.length > 0 ? (
+        <FlatList
+          data={favoritesData}
+          renderItem={({ item }) => (
+            // Render your favorite item here
+            <View>
+              <TouchableOpacity
+                style={styles.favcontainer}
+                onPress={() =>
+                  navigation.navigate("Details", { product: item._id })
+                }
+              >
+                <TouchableOpacity style={styles.imageContainer}>
+                  <Image
+                    source={{ uri: item?.image }}
+                    resizeMode="cover"
+                    style={styles.productImg}
+                  />
+                </TouchableOpacity>
+                <View style={styles.textContainer}>
+                  <Text style={styles.productTxt} numberOfLines={1}>
+                    {item.productName}
+                  </Text>
+                  <Text style={styles.supplierTxt} numberOfLines={1}>
+                    {item.description}
+                  </Text>
+                  <Text style={styles.supplierTxt} numberOfLines={1}>
+                    $ {item.price}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => deleteFavorite(item._id)}>
+                  <SimpleLineIcons name="trash" size={24} color="black" />
+                </TouchableOpacity>
               </TouchableOpacity>
-              <View style={styles.textContainer}>
-                <Text style={styles.productTxt} numberOfLines={1}>
-                  {item.productName}
-                </Text>
-                <Text style={styles.supplierTxt} numberOfLines={1}>
-                  {item.description}
-                </Text>
-                <Text style={styles.supplierTxt} numberOfLines={1}>
-                  $ {item.price}
-                </Text>
-              </View>
-              <TouchableOpacity onPress={() => deleteFavorite(item._id)}>
-                <SimpleLineIcons name="trash" size={24} color="black" />
-              </TouchableOpacity>
-            </TouchableOpacity>
-          </View>
-        )}
-        keyExtractor={(item, index) => index.toString()}
-      />
+            </View>
+          )}
+          keyExtractor={(item, index) => index.toString()}
+        />
+      ) : (
+        <Text>No favorite found</Text>
+      )}
     </SafeAreaView>
   );
 };

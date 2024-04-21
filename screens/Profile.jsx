@@ -120,11 +120,19 @@ const Profile = ({ navigation }) => {
           </View>
 
           <View style={{ flex: 1, alignItems: "center" }}>
-            <Image
-              source={require("../assets/images/profile.jpeg")}
-              resizeMode="cover"
-              style={styles.profileImg}
-            />
+            {userData?.image ? (
+              <Image
+                source={{ uri: userData?.image }}
+                resizeMode="cover"
+                style={styles.profileImg}
+              />
+            ) : (
+              <Image
+                source={require("../assets/images/profile.jpeg")}
+                resizeMode="cover"
+                style={styles.profileImg}
+              />
+            )}
 
             <Text style={styles.name}>
               {userData ? userData.username : "Please login into your account"}

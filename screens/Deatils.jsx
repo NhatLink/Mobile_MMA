@@ -61,8 +61,76 @@ const Details = ({ navigation }) => {
           count
         );
         console.log("Added to cart:", response);
+
+        // Hiển thị thông báo khi thêm vào giỏ hàng thành công
+        Alert.alert(
+          "Success",
+          "Added to cart successfully!",
+          [
+            {
+              text: "OK",
+              style: "default", // Có thể sử dụng 'cancel' hoặc 'destructive'
+            },
+          ],
+          {
+            // Tùy chỉnh style cho thông báo
+            titleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "green",
+            },
+            messageStyle: {
+              fontSize: 16,
+              color: "blue",
+            },
+            // Tùy chỉnh nền của thông báo
+            backgroundColor: "lightgray",
+            // Tùy chỉnh màu của các nút
+            buttonTextStyle: {
+              color: "red",
+            },
+            buttonStyle: {
+              backgroundColor: "yellow",
+            },
+            // Tùy chỉnh viền của thông báo
+            overlayStyle: {
+              backgroundColor: "rgba(0,0,0,0.5)",
+            },
+          }
+        );
       } catch (error) {
         console.error("Failed to add to cart:", error);
+        Alert.alert(
+          "Error",
+          "Failed to add to cart. Please try again later.",
+          [
+            {
+              text: "OK",
+              style: "default",
+            },
+          ],
+          {
+            titleStyle: {
+              fontWeight: "bold",
+              fontSize: 20,
+              color: "red",
+            },
+            messageStyle: {
+              fontSize: 16,
+              color: "black",
+            },
+            backgroundColor: "lightgray",
+            buttonTextStyle: {
+              color: "blue",
+            },
+            buttonStyle: {
+              backgroundColor: "yellow",
+            },
+            overlayStyle: {
+              backgroundColor: "rgba(0,0,0,0.5)",
+            },
+          }
+        );
       }
     } else {
       navigation.navigate("Login");
@@ -515,16 +583,16 @@ const Details = ({ navigation }) => {
             rating={
               dataFeedback?.length > 0
                 ? dataFeedback?.reduce((acc, curr) => acc + curr.rating, 0) /
-                  dataFeedback?.length
+                dataFeedback?.length
                 : 0
             }
           />
           <Text style={styles.averageRatingText}>
             {dataFeedback?.length > 0
               ? (
-                  dataFeedback?.reduce((acc, curr) => acc + curr.rating, 0) /
-                  dataFeedback?.length
-                ).toFixed(1) + "/5.0"
+                dataFeedback?.reduce((acc, curr) => acc + curr.rating, 0) /
+                dataFeedback?.length
+              ).toFixed(1) + "/5.0"
               : "No ratings"}
           </Text>
           <Text style={styles.totalFeedbackText}>

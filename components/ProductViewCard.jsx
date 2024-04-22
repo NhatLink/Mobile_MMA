@@ -28,7 +28,6 @@ const ProductCardView = ({ item }) => {
           style={styles.addButton}
           onPress={() => addToCart(item._id, 1)}
         >
-          <Ionicons name="add-circle" size={35} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
     </TouchableOpacity>

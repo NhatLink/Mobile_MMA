@@ -10,8 +10,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Keyboard,
 } from "react-native";
 import axios from "axios";
+import { baseUrl } from "../utils/IP";
 import SearchTile from "../components/product/SearchTile";
 
 const Search = () => {
@@ -19,11 +21,13 @@ const Search = () => {
   const [searchResults, setSearchResults] = useState([]);
 
   const handleSearch = async () => {
+    Keyboard.dismiss();
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/products/search/${searchKey}`
+        `${baseUrl}/product/searchProductByName/${searchKey}`
       );
-      setSearchResults(response.data);
+      setSearchResults(response.data.products);
+      console.log("Search data: ", response.data.products);
     } catch (error) {
       console.error("Failed to perform search:", error);
     }
@@ -54,15 +58,16 @@ const Search = () => {
         </TouchableOpacity>
       </View>
       {searchResults.length === 0 ? (
-        <View style={{flex: 1}}>
-          <Image source={require("../assets/images/Pose23.png")}
+        <View style={{ flex: 1 }}>
+          <Image
+            source={require("../assets/images/Pose23.png")}
             style={styles.searchImage}
           />
         </View>
       ) : (
         <FlatList
           data={searchResults}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item?._id}
           renderItem={({ item }) => <SearchTile item={item} />}
         />
       )}
@@ -83,10 +88,10 @@ const styles = StyleSheet.create({
     height: 50,
   },
 
-  searchImage:{
+  searchImage: {
     resizeMode: "contain",
-    width: SIZES.width-100, 
-    height: SIZES.height-300,
+    width: SIZES.width - 100,
+    height: SIZES.height - 300,
     opacity: 0.9,
   },
 

@@ -9,7 +9,8 @@ import React, { useEffect, useState } from "react";
 import { COLORS, SIZES } from "../constants";
 import { Ionicons, Fontisto } from "@expo/vector-icons";
 
-import { Carousel, Headings, ProductRow, Welcome } from "../components";
+import { Carousel, Headings, Welcome } from "../components";
+import ProductsRow from "../components/product/ProductsRow";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -86,7 +87,7 @@ const Home = () => {
           <Welcome />
           <Carousel />
           <Headings />
-          <ProductRow />
+          <ProductsRow />
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -1,12 +1,67 @@
-import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  StyleSheet,
+  TextInput,
+  Alert,
+  Image,
+} from "react-native";
 import React, { useState } from "react";
 import { SIZES, COLORS, SHADOWS } from "../../constants";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-
+import formatDate from "../../utils/helper";
+import { baseUrl } from "../../utils/IP";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Rating } from "react-native-ratings";
+import fetchOrders from "../../hook/fetchOrders";
 const OrderTile = ({ item }) => {
+  const [responseData, setResponseData] = useState(null);
+  const [contentFeedback, setContentFeedback] = useState("");
+  const [ratingFeedback, setRatingFeedback] = useState(0);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { data, isLoading, error, refetch } = fetchOrders();
+  const AddFeedback = async () => {
+    setLoading(true);
+    try {
+      const id = await AsyncStorage.getItem("id");
+      const accessToken = await AsyncStorage.getItem("accessToken");
+      if (!id || !accessToken) {
+        throw new Error("Authentication required.");
+      }
+      const instance = axios.create({
+        headers: { Authorization: `Bearer ${JSON.parse(accessToken)}` },
+      });
+
+      const endpoint = `${baseUrl}/feedback/addFeedback`;
+      const data = {
+        productId: item?.order?.product_id._id,
+        userId: JSON.parse(id),
+        orderId: item?.order?._id,
+        content: contentFeedback,
+        rating: ratingFeedback,
+      };
+      console.log("feedback data:", data);
+      const response = await instance.post(endpoint, data);
+      if (response.status === 201) {
+        setResponseData(response.data);
+        Alert.alert("Feedback add successfully");
+        setModalVisible(false); // Close modal after successful feedback
+      }
+    } catch (error) {
+      console.error("Feedback error: ", error);
+      Alert.alert("Failed", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View>
-      <TouchableOpacity onPress={() => {}} style={styles.container}>
+      <View onPress={() => {}} style={styles.container}>
         <View style={styles.containerProduct}>
           <View style={styles.imageContainer}>
             <Image
@@ -24,6 +79,12 @@ const OrderTile = ({ item }) => {
             </Text>
             <Text style={styles.supplierTxt} numberOfLines={1}>
               Total Price: {item?.order?.totalPrice}
+            </Text>
+            <Text style={styles.supplierTxt} numberOfLines={1}>
+              Create date:{" "}
+              {item?.order?.timestamp
+                ? formatDate(item.order.timestamp)
+                : "Không có dữ liệu thời gian"}
             </Text>
           </View>
         </View>
@@ -49,11 +110,58 @@ const OrderTile = ({ item }) => {
         ) : (
           <View style={styles.containerDelivery}>
             <View style={styles.checkoutBtnChoXacNhan}>
-              <Text style={styles.checkOutText}>Cho xac nhan</Text>
+              <Text style={styles.checkOutText}>Chờ xác nhận</Text>
             </View>
           </View>
         )}
-      </TouchableOpacity>
+
+        {item?.delivery?.status === "chờ đánh giá" ? (
+          <TouchableOpacity
+            style={styles.containerDelivery}
+            onPress={() => setModalVisible(true)}
+          >
+            <View style={styles.checkoutBtnFeedback}>
+              <Text style={styles.checkOutText}>Feedback</Text>
+            </View>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          Alert.alert("Modal has been closed.");
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <TextInput
+              style={styles.input}
+              onChangeText={setContentFeedback}
+              value={contentFeedback}
+              placeholder="Enter your feedback"
+            />
+            <Rating
+              ratingCount={5}
+              imageSize={40}
+              onFinishRating={setRatingFeedback}
+            />
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={styles.button} onPress={AddFeedback}>
+                <Text style={styles.textStyle}>Confirm</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.textStyle}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -141,6 +249,15 @@ const styles = StyleSheet.create({
     // maxWidth: 250,
     // maxHeight: 30,
   },
+  checkoutBtnFeedback: {
+    width: "150%",
+    height: "100%",
+    backgroundColor: COLORS.primary,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+  },
   orderRow: {
     paddingLeft: 10,
     flexDirection: "row",
@@ -152,5 +269,53 @@ const styles = StyleSheet.create({
     fontSize: SIZES.small,
     color: COLORS.gray,
     textTransform: "uppercase",
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: COLORS.primary,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    maxWidth: 120,
+    maxHeight: 20,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  input: {
+    width: 200,
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
   },
 });

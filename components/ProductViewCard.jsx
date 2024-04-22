@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SIZES, COLORS } from "../constants";
 import { useNavigation } from "@react-navigation/native";
 import addToCart from "../hook/addToCart";
+import { StarRating } from "../components";
 
 const ProductCardView = ({ item }) => {
   const navigation = useNavigation();
@@ -23,13 +24,26 @@ const ProductCardView = ({ item }) => {
             {item.description}
           </Text>
           <Text style={styles.price}>${item.price}</Text>
+          <View style={styles.ratingContainer}>
+            <StarRating rating={item?.avgRating} />
+            <Text style={styles.averageRatingText}>
+              {item?.avgRating > 0
+                ? (item?.avgRating).toFixed(1) + "/5.0"
+                : "No ratings"}
+            </Text>
+          </View>
+          <Text style={styles.totalFeedbackText}>
+            {item?.reviewCount
+              ? "(" + item?.reviewCount + " reviews)"
+              : "(0 review)"}
+          </Text>
         </View>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.addButton}
           onPress={() => addToCart(item._id, 1)}
         >
           <Ionicons name="add-circle" size={35} color={COLORS.primary} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </TouchableOpacity>
   );
@@ -82,5 +96,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: SIZES.xSmall,
     right: SIZES.xSmall,
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    backgroundColor: COLORS.secondary,
+  },
+  averageRatingText: {
+    marginLeft: 5,
+    marginRight: 5,
+    textAlign: "center",
   },
 });

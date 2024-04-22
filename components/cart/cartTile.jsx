@@ -17,6 +17,7 @@ import { useNavigation } from "@react-navigation/native";
 import { WebView } from "react-native-webview";
 import useUser from "../../hook/useUser";
 import { baseUrl } from "../../utils/IP";
+import formatDate from "../../utils/helper";
 import { usePayment } from "../../hook/PaymentContext";
 import fetchCart from "../../hook/fetchCart";
 
@@ -254,6 +255,11 @@ const CartTile = ({ item }) => {
               {item?.order?.product_id?.price && count
                 ? (item.order.product_id.price * count).toFixed(2)
                 : "N/A"}
+            </Text>
+            <Text style={styles.supplierTxt} numberOfLines={1}>
+              {item?.order?.timestamp
+                ? formatDate(item.order.timestamp)
+                : "Không có dữ liệu thời gian"}
             </Text>
           </View>
           <View>

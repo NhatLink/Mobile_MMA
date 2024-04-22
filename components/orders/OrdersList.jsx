@@ -23,13 +23,14 @@ const OrdersList = () => {
   const [selectedStatus, setSelectedStatus] = useState(null);
   useEffect(() => {
     setFilteredData(data); // Cập nhật filteredData mỗi khi data thay đổi
+    console.log("datainOrder:", data);
   }, [data]); // Phụ thuộc vào data
 
   const filterOrder = (status) => {
     setSelectedStatus(status);
     if (status === null) {
       setFilteredData(data);
-    } else if (status === "Cho xac nhan") {
+    } else if (status === "Chờ xác nhận") {
       setFilteredData(data.filter((item) => !item?.delivery));
     } else {
       setFilteredData(
@@ -86,25 +87,27 @@ const OrdersList = () => {
             <Text style={styles.filterText}>All</Text>
           </View>
         </TouchableOpacity>
-        {["Cho xac nhan", "Dang giao hang", "Da giao hang"].map((status) => (
-          <TouchableOpacity
-            key={status}
-            style={[
-              styles.filterButton,
-              selectedStatus === status && styles.selectedFilterButton,
-            ]}
-            onPress={() => filterOrder(status)}
-          >
-            <View style={styles.filterContent}>
-              <MaterialCommunityIcons
-                name="truck-fast-outline"
-                size={16}
-                color="gray"
-              />
-              <Text style={styles.filterText}>{status}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+        {["Chờ xác nhận", "Chờ giao hàng", "Chờ đánh giá", "Đã xác nhận"].map(
+          (status) => (
+            <TouchableOpacity
+              key={status}
+              style={[
+                styles.filterButton,
+                selectedStatus === status && styles.selectedFilterButton,
+              ]}
+              onPress={() => filterOrder(status)}
+            >
+              <View style={styles.filterContent}>
+                <MaterialCommunityIcons
+                  name="truck-fast-outline"
+                  size={16}
+                  color="gray"
+                />
+                <Text style={styles.filterText}>{status}</Text>
+              </View>
+            </TouchableOpacity>
+          )
+        )}
       </ScrollView>
       {filteredData.length === 0 ? (
         <View
@@ -124,7 +127,7 @@ const OrdersList = () => {
       ) : (
         <FlatList
           data={filteredData}
-          keyExtractor={(item) => item?.delivery?.order?._id}
+          keyExtractor={(item) => item?.order?._id}
           renderItem={({ item }) => <OrderTile item={item} />}
           vertical={true}
           contentContainerStyle={styles.container}

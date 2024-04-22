@@ -16,83 +16,84 @@ import axios from "axios";
 import Input from "../components/auth/input";
 import Button from "../components/auth/Button";
 import BackButton from "../components/auth/BackButton";
-// import { launchImageLibrary, launchCamera } from "react-native-image-picker";
-import * as ImagePicker from "react-native-image-picker";
+import Picker from "../components/auth/Picker";
+import Loader from "../components/auth/Loader";
+import { baseUrl } from "../utils/IP";
+import { launchImageLibrary, launchCamera } from "react-native-image-picker";
+// import * as ImagePicker from "react-native-image-picker";
 const Signup = ({ navigation }) => {
-  const [loader, setLoader] = React.useState(false);
+  const [loader, setLoader] = useState(false);
   const [responseData, setResponseData] = useState(null);
-  const [image, setImage] = useState(null);
-  const [inputs, setInput] = React.useState({
+  const [inputs, setInput] = useState({
     username: "",
     email: "",
-    location: "",
     password: "",
+    gender: "Male",
+    address: "",
+    fullName: "",
+    phone: "",
+    status: true,
+    role: "user",
   });
-
-  const chooseImage = () => {
-    const options = {
-      title: "Select Avatar",
-      storageOptions: {
-        skipBackup: true,
-        path: "images",
-      },
-      mediaType: "photo",
-    };
-
-    ImagePicker.launchImageLibrary(options, (response) => {
-      if (response.didCancel) {
-        console.log("User cancelled image picker");
-      } else if (response.error) {
-        console.log("ImagePicker Error: ", response.error);
-      } else {
-        const source = { uri: response.assets[0].uri };
-        setImage(source);
-        setInput((prevState) => ({ ...prevState, image: response.assets[0] }));
-      }
-    });
-  };
-
-  const [errors, setErrors] = React.useState({});
+  const [errors, setErrors] = useState({});
 
   const handleError = (errorMessage, input) => {
     setErrors((prevState) => ({ ...prevState, [input]: errorMessage }));
   };
 
-  // INPUT VALIDATION
   const validate = () => {
     Keyboard.dismiss();
     let valid = true;
+    const { email, password, username, address, fullName, phone, gender } =
+      inputs;
 
-    if (!inputs.email) {
-      handleError("Provide a valid email", "email");
+    if (!email) {
+      handleError("Email is required", "email");
       valid = false;
-    } else if (!inputs.email.match(/\S+@\S+\.\S+/)) {
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
       handleError("Provide a valid email", "email");
       valid = false;
     }
 
-    if (!inputs.location) {
-      handleError("Please input location", "location");
+    if (!password) {
+      handleError("Password is required", "password");
       valid = false;
-    } else if (inputs.location.length < 3) {
-      handleError("At least 3 characters are required", "location");
+    } else if (password.length < 8) {
+      handleError("At least 8 characters are required", "password");
       valid = false;
     }
 
-    if (!inputs.username) {
-      handleError("Please input username", "username");
+    if (!username) {
+      handleError("Username is required", "username");
       valid = false;
-    } else if (inputs.location.length < 5) {
+    } else if (username.length < 3) {
       handleError("At least 3 characters are required", "username");
       valid = false;
     }
 
-    if (!inputs.password) {
-      handleError("Please input password", "password");
+    if (!fullName) {
+      handleError("Full name is required", "fullName");
       valid = false;
-    } else if (inputs.password.length < 8) {
-      handleError("At least 8 characters are required", "password");
+    } else if (fullName.length < 3) {
+      handleError("At least 3 characters are required", "fullName");
       valid = false;
+    }
+
+    if (!address) {
+      handleError("Address is required", "address");
+      valid = false;
+    }
+
+    if (!phone) {
+      handleError("Phone is required", "phone");
+      valid = false;
+    } else if (!phone.match(/^[0-9]{10,12}$/)) {
+      handleError("Provide a valid phone number", "phone");
+      valid = false;
+    }
+
+    if (!gender) {
+      handleError("Gender is required", "gender");
     }
 
     if (valid) {
@@ -100,59 +101,22 @@ const Signup = ({ navigation }) => {
     }
   };
 
-  // const register = async () => {
-  //   setLoader(true);
-  //   try {
-  //     const endpoint = "http://localhost:3000/api/register";
-  //     const data = inputs;
-  //     console.log(data);
-
-  //     const response = await axios.post(endpoint, data);
-
-  //     if (response.status === 201) {
-  //       setResponseData(response.data);
-
-  //       navigation.replace("Login");
-  //     }
-  //   } catch (error) {
-  //     Alert.alert("Error", error);
-  //   }
-  // };
   const register = async () => {
     setLoader(true);
-    const endpoint = "http://localhost:3000/api/register"; // Đảm bảo URL này đúng
-    const data = new FormData();
-    data.append("username", inputs.username);
-    data.append("email", inputs.email);
-    data.append("location", inputs.location);
-    data.append("password", inputs.password);
-
-    if (inputs.image) {
-      data.append("image", {
-        name: "avatar.jpg",
-        type: "image/jpeg",
-        uri:
-          Platform.OS === "android"
-            ? inputs.image.uri
-            : inputs.image.uri.replace("file://", ""),
-      });
-    }
-
     try {
-      const response = await axios.post(endpoint, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const endpoint = `${baseUrl}/user/register`;
+      const data = { ...inputs };
+      console.log(data);
 
-      if (response.status === 201) {
-        setResponseData(response.data);
+      const response = await axios.post(endpoint, data);
+
+      if (response.status === 200) {
+        setResponseData(response.data.message);
+        Alert.alert("Success Register", response.data.message);
         navigation.replace("Login");
       }
     } catch (error) {
-      console.error("Registration error: ", error);
-      Alert.alert("Registration Failed", error.message);
-    } finally {
+      Alert.alert("Error", error.message);
       setLoader(false);
     }
   };
@@ -160,10 +124,10 @@ const Signup = ({ navigation }) => {
   const handleChanges = (text, input) => {
     setInput((prevState) => ({ ...prevState, [input]: text }));
   };
-
   return (
     <ScrollView>
       <SafeAreaView style={{ marginHorizontal: 20 }}>
+        <Loader visible={loader} />
         <KeyboardAvoidingView>
           <View>
             <BackButton onPress={() => navigation.goBack()} />
@@ -171,67 +135,70 @@ const Signup = ({ navigation }) => {
               source={require("../assets/images/bk.png")}
               style={styles.img}
             />
-            {/* WELCOME TEXT */}
-
             <Text style={styles.motto}>Sign up and start shopping</Text>
 
             <Input
               placeholder="Username"
-              icon="face-man-profile"
-              label={"Username"}
+              label="Username"
               error={errors.username}
-              onFocus={() => {
-                handleError(null, "username");
-              }}
+              onFocus={() => handleError(null, "username")}
               onChangeText={(text) => handleChanges(text, "username")}
             />
 
             <Input
               placeholder="Enter email"
-              icon="email-outline"
-              label={"Email"}
+              label="Email"
               error={errors.email}
-              onFocus={() => {
-                handleError(null, "email");
-              }}
+              onFocus={() => handleError(null, "email")}
               onChangeText={(text) => handleChanges(text, "email")}
             />
 
             <Input
-              placeholder="Location"
-              label={"Location"}
-              error={errors.location}
-              onFocus={() => {
-                handleError(null, "location");
-              }}
-              onChangeText={(text) => handleChanges(text, "location")}
+              placeholder="Full Name"
+              label="Full Name"
+              error={errors.fullName}
+              onFocus={() => handleError(null, "fullName")}
+              onChangeText={(text) => handleChanges(text, "fullName")}
+            />
+
+            <Picker
+              selectedValue={inputs.gender}
+              onValueChange={(itemValue, itemIndex) =>
+                handleChanges(itemValue, "gender")
+              }
+              items={["Male", "Female", "Other"]}
+              label="Gender"
+              error={errors.gender}
+            />
+
+            <Input
+              placeholder="Address"
+              label="Address"
+              error={errors.address}
+              onFocus={() => handleError(null, "address")}
+              onChangeText={(text) => handleChanges(text, "address")}
+            />
+
+            <Input
+              placeholder="Phone"
+              label="Phone"
+              error={errors.phone}
+              onFocus={() => handleError(null, "phone")}
+              onChangeText={(text) => handleChanges(text, "phone")}
             />
 
             <Input
               placeholder="Password"
               icon="lock-outline"
-              label={"Password"}
+              label="Password"
               error={errors.password}
-              onFocus={() => {
-                handleError(null, "password");
-              }}
+              onFocus={() => handleError(null, "password")}
               onChangeText={(text) => handleChanges(text, "password")}
             />
-            {image && (
-              <Image
-                source={{ uri: image.uri }}
-                style={{ width: 100, height: 100, marginBottom: 10 }}
-              />
-            )}
-            <Button
-              title="Choose Image"
-              onPress={() => {
-                chooseImage();
-              }}
-            />
-            <Button title={"SIGNUP"} onPress={validate} />
+
+            <Button title="SIGN UP" onPress={validate} />
             <Text style={styles.registered} onPress={() => navigation.goBack()}>
-              Already have an acount? Login
+              Already have an account? Login
             </Text>
           </View>
         </KeyboardAvoidingView>

@@ -24,13 +24,13 @@ const ProductRow = () => {
   // Render các cặp sản phẩm
   const renderProductPairs = () => {
     const pairs = [];
-    for (let i = 0; i < numItemsToShow && i < data.length; i += 2) {
+    for (let i = 0; i < numItemsToShow && i < data?.products?.length; i += 2) {
       pairs.push(
         <View style={styles.productPair} key={i}>
-          <ProductCardView item={data[i]} />
+          <ProductCardView item={data.products[i]} />
           {/* Kiểm tra xem có sản phẩm thứ hai trong cặp không */}
-          {i + 1 < numItemsToShow && i + 1 < data.length && (
-            <ProductCardView item={data[i + 1]} />
+          {i + 1 < numItemsToShow && i + 1 < data?.products?.length && (
+            <ProductCardView item={data.products[i + 1]} />
           )}
         </View>
       );
@@ -49,7 +49,7 @@ const ProductRow = () => {
           ) : (
             <>
               {renderProductPairs()}
-              {data.length > numItemsToShow && (
+              {data?.products?.length > numItemsToShow && (
                 <TouchableOpacity
                   style={styles.loadMoreButton}
                   onPress={loadMore}

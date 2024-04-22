@@ -16,17 +16,41 @@ import axios from "axios";
 import Input from "../components/auth/input";
 import Button from "../components/auth/Button";
 import BackButton from "../components/auth/BackButton";
-
+// import { launchImageLibrary, launchCamera } from "react-native-image-picker";
+import * as ImagePicker from "react-native-image-picker";
 const Signup = ({ navigation }) => {
   const [loader, setLoader] = React.useState(false);
   const [responseData, setResponseData] = useState(null);
-
+  const [image, setImage] = useState(null);
   const [inputs, setInput] = React.useState({
     username: "",
     email: "",
     location: "",
     password: "",
   });
+
+  const chooseImage = () => {
+    const options = {
+      title: "Select Avatar",
+      storageOptions: {
+        skipBackup: true,
+        path: "images",
+      },
+      mediaType: "photo",
+    };
+
+    ImagePicker.launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log("User cancelled image picker");
+      } else if (response.error) {
+        console.log("ImagePicker Error: ", response.error);
+      } else {
+        const source = { uri: response.assets[0].uri };
+        setImage(source);
+        setInput((prevState) => ({ ...prevState, image: response.assets[0] }));
+      }
+    });
+  };
 
   const [errors, setErrors] = React.useState({});
 
@@ -76,22 +100,60 @@ const Signup = ({ navigation }) => {
     }
   };
 
+  // const register = async () => {
+  //   setLoader(true);
+  //   try {
+  //     const endpoint = "http://localhost:3000/api/register";
+  //     const data = inputs;
+  //     console.log(data);
+
+  //     const response = await axios.post(endpoint, data);
+
+  //     if (response.status === 201) {
+  //       setResponseData(response.data);
+
+  //       navigation.replace("Login");
+  //     }
+  //   } catch (error) {
+  //     Alert.alert("Error", error);
+  //   }
+  // };
   const register = async () => {
     setLoader(true);
-    try {
-      const endpoint = "http://localhost:3000/api/register";
-      const data = inputs;
-      console.log(data);
+    const endpoint = "http://localhost:3000/api/register"; // Đảm bảo URL này đúng
+    const data = new FormData();
+    data.append("username", inputs.username);
+    data.append("email", inputs.email);
+    data.append("location", inputs.location);
+    data.append("password", inputs.password);
 
-      const response = await axios.post(endpoint, data);
+    if (inputs.image) {
+      data.append("image", {
+        name: "avatar.jpg",
+        type: "image/jpeg",
+        uri:
+          Platform.OS === "android"
+            ? inputs.image.uri
+            : inputs.image.uri.replace("file://", ""),
+      });
+    }
+
+    try {
+      const response = await axios.post(endpoint, data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (response.status === 201) {
         setResponseData(response.data);
-
         navigation.replace("Login");
       }
     } catch (error) {
-      Alert.alert("Error", error);
+      console.error("Registration error: ", error);
+      Alert.alert("Registration Failed", error.message);
+    } finally {
+      setLoader(false);
     }
   };
 
@@ -155,11 +217,22 @@ const Signup = ({ navigation }) => {
               }}
               onChangeText={(text) => handleChanges(text, "password")}
             />
-
+            {image && (
+              <Image
+                source={{ uri: image.uri }}
+                style={{ width: 100, height: 100, marginBottom: 10 }}
+              />
+            )}
+            <Button
+              title="Choose Image"
+              onPress={() => {
+                chooseImage();
+              }}
+            />
             <Button title={"SIGNUP"} onPress={validate} />
-            {/* <Text style={styles.registered} onPress={()=> navigation.goBack()}>
+            <Text style={styles.registered} onPress={() => navigation.goBack()}>
               Already have an acount? Login
-            </Text> */}
+            </Text>
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>

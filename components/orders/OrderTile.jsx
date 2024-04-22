@@ -27,23 +27,32 @@ const OrderTile = ({ item }) => {
             </Text>
           </View>
         </View>
+        {item?.shipper?.shipperName &&
+        item?.shipper?.phone &&
+        item?.delivery?.status ? (
+          <View style={styles.containerDelivery}>
+            <View style={styles.checkoutBtn}>
+              <Text style={styles.checkOutText}>{item?.delivery?.status}</Text>
+            </View>
 
-        <View style={styles.containerDelivery}>
-          <View style={styles.checkoutBtn}>
-            <Text style={styles.checkOutText}>{item?.delivery?.status}</Text>
+            <View style={styles.orderRow}>
+              <MaterialCommunityIcons
+                name="truck-fast-outline"
+                size={16}
+                color="gray"
+              />
+              <Text style={styles.totalText}>
+                {item?.shipper?.shipperName} - {item?.shipper?.phone}{" "}
+              </Text>
+            </View>
           </View>
-
-          <View style={styles.orderRow}>
-            <MaterialCommunityIcons
-              name="truck-fast-outline"
-              size={16}
-              color="gray"
-            />
-            <Text style={styles.totalText}>
-              {item?.shipper?.shipperName} - {item?.shipper?.phone}{" "}
-            </Text>
+        ) : (
+          <View style={styles.containerDelivery}>
+            <View style={styles.checkoutBtnChoXacNhan}>
+              <Text style={styles.checkOutText}>Cho xac nhan</Text>
+            </View>
           </View>
-        </View>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -121,6 +130,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     maxWidth: 140,
     maxHeight: 20,
+  },
+  checkoutBtnChoXacNhan: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: COLORS.primary,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    // maxWidth: 250,
+    // maxHeight: 30,
   },
   orderRow: {
     paddingLeft: 10,

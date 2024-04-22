@@ -60,39 +60,77 @@ const LoginPage = ({ navigation }) => {
     }
   };
 
+  // const login = async () => {
+  //   setLoader(true);
+  //   try {
+  //     const endpoint = `${baseUrl}/user/login`;
+  //     const data = inputs;
+  //     console.log(data);
+
+  //     const response = await axios.post(endpoint, data);
+  //     setResponseData(response.data);
+  //     console.log("login", responseData);
+
+  //     try {
+  //       setLoader(false);
+  //       await AsyncStorage.setItem(
+  //         "accessToken",
+  //         JSON.stringify(responseData?.token)
+  //       );
+  //       await AsyncStorage.setItem(
+  //         `user${responseData?.user?._id}`,
+  //         JSON.stringify(responseData?.user)
+  //       );
+  //       await AsyncStorage.setItem(
+  //         "id",
+  //         JSON.stringify(responseData?.user?._id)
+  //       );
+  //       navigation.replace("Bottom Navigation");
+  //     } catch (error) {
+  //       Alert.alert("Error", "Oops, something went wrong. Try again");
+  //     }
+  //   } catch (error) {
+  //     Alert.alert("Error", error);
+  //   }
+  // };
+
   const login = async () => {
     setLoader(true);
     try {
       const endpoint = `${baseUrl}/user/login`;
-
-      // const endpoint = "http://192.168.1.16:3000/user/login";
       const data = inputs;
       console.log(data);
 
       const response = await axios.post(endpoint, data);
-      setResponseData(response.data);
-      console.log("login", responseData);
 
+      // Sử dụng trực tiếp response.data thay vì chờ responseData cập nhật
+      const responseData = response.data;
+      console.log("login response", responseData);
+
+      // Tắt loader và lưu trữ các thông tin cần thiết
+      setLoader(false);
       try {
-        setLoader(false);
         await AsyncStorage.setItem(
           "accessToken",
-          JSON.stringify(responseData?.token)
+          JSON.stringify(responseData.token)
         );
         await AsyncStorage.setItem(
-          `user${responseData?.user?._id}`,
-          JSON.stringify(responseData?.user)
+          `user${responseData.user._id}`,
+          JSON.stringify(responseData.user)
         );
-        await AsyncStorage.setItem(
-          "id",
-          JSON.stringify(responseData?.user?._id)
-        );
+        await AsyncStorage.setItem("id", JSON.stringify(responseData.user._id));
         navigation.replace("Bottom Navigation");
       } catch (error) {
-        Alert.alert("Error", "Oops, something went wrong. Try again");
+        console.error("Storage error:", error);
+        Alert.alert(
+          "Error",
+          "Oops, something went wrong with storage. Try again"
+        );
       }
     } catch (error) {
-      Alert.alert("Error", error);
+      setLoader(false);
+      console.error("Login error:", error);
+      Alert.alert("Error", "Oops, something went wrong. Try again");
     }
   };
 

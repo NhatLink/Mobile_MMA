@@ -26,7 +26,7 @@ const fetchOrders = () => {
       );
 
       setData(response.data);
-      console.log(response.data);
+      console.log("Fetch order: ", response.data);
       setLoading(false);
     } catch (error) {
       setError(error);

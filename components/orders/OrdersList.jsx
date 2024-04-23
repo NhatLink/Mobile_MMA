@@ -74,7 +74,7 @@ const OrdersList = () => {
     );
   }
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

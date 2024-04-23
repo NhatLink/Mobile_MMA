@@ -512,38 +512,43 @@ const Details = ({ navigation }) => {
               setModalVisibleOrder(!modalVisibleOrder);
             }}
           >
-            <View style={styles.modalView}>
-              <Text>Price: ${data?.price}</Text>
-              <Text>Quantity: {count}</Text>
-              <Text>
-                Store Location: {selectedStore?.location},
-                {selectedStore?.district},{selectedStore?.province}
-              </Text>
-              <Text>
-                Total price: $
-                {data?.price && count
-                  ? (data?.price * count).toFixed(2)
-                  : "N/A"}
-              </Text>
-              <TextInput
-                style={styles.input}
-                onChangeText={setcontentLocation}
-                value={contentLocation}
-                placeholder="Enter your location"
-              />
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  onPress={handlePress}
-                  style={styles.checkoutBtn}
-                >
-                  <Text style={styles.checkOutText}>Confirm</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setModalVisibleOrder(!modalVisibleOrder)}
-                  style={styles.checkoutBtn}
-                >
-                  <Text style={styles.checkOutText}>Cancel</Text>
-                </TouchableOpacity>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalHeaderText}>Confirm Order</Text>
+                <View style={styles.orderDetails}>
+                  <Text style={styles.detailText}>Price: ${data?.price}</Text>
+                  <Text style={styles.detailText}>Quantity: {count}</Text>
+                  <Text style={styles.detailText}>
+                    Store Location: {selectedStore?.location},
+                    {selectedStore?.district}, {selectedStore?.province}
+                  </Text>
+                  <Text style={styles.detailText}>
+                    Total price: $
+                    {data?.price && count
+                      ? (data?.price * count).toFixed(2)
+                      : "N/A"}
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    onChangeText={setcontentLocation}
+                    value={contentLocation}
+                    placeholder="Enter your location"
+                  />
+                </View>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    onPress={() => setModalVisibleOrder(!modalVisibleOrder)}
+                    style={styles.cancelButton}
+                  >
+                    <Text style={styles.buttonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handlePress}
+                    style={styles.confirmButton}
+                  >
+                    <Text style={styles.buttonText}>Confirm</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </Modal>
@@ -934,6 +939,59 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    width: "80%",
+  },
+  modalHeaderText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  orderDetails: {
+    marginBottom: 20,
+  },
+  detailText: {
+    marginBottom: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  confirmButton: {
+    backgroundColor: "green",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  cancelButton: {
+    backgroundColor: "black",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 

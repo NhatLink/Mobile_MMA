@@ -7,6 +7,7 @@ import {
   Modal,
   ScrollView,
   Alert,
+  TextInput,
 } from "react-native";
 import React, { useState } from "react";
 import { SIZES, COLORS, SHADOWS } from "../../constants";
@@ -27,6 +28,7 @@ const CartTile = ({ item }) => {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [count, setCount] = useState(item?.order?.quantity);
+  const [contentLocation, setcontentLocation] = useState("");
   // const [paymentUrl, setPaymentUrl] = useState(null);
   const userLogin = useUser(navigation);
   const { setPaymentUrl } = usePayment();
@@ -100,6 +102,7 @@ const CartTile = ({ item }) => {
       const data = {
         quantity: count,
         price: item?.order?.product_id?.price,
+        location: contentLocation,
       };
       const endpoint = `${baseUrl}/order/updateOrder/${item?.order?._id}`;
       await instance.put(endpoint, data);
@@ -163,23 +166,23 @@ const CartTile = ({ item }) => {
     }
 
     // Kiểm tra xem có cần cập nhật giỏ hàng không
-    if (count !== item?.order?.quantity) {
-      try {
-        // Cập nhật giỏ hàng trước
-        await updateCart();
-        // Sau khi cập nhật xong, tiếp tục với việc tạo phiên thanh toán
-        await createCheckoutSession();
-      } catch (error) {
-        console.error(
-          "Error while updating cart or creating checkout session:",
-          error
-        );
-        Alert.alert("Error", error.message || "Error during the process");
-      }
-    } else {
-      // Nếu số lượng không thay đổi, chỉ cần tạo phiên thanh toán
+    // if (count !== item?.order?.quantity) {
+    try {
+      // Cập nhật giỏ hàng trước
+      await updateCart();
+      // Sau khi cập nhật xong, tiếp tục với việc tạo phiên thanh toán
       await createCheckoutSession();
+    } catch (error) {
+      console.error(
+        "Error while updating cart or creating checkout session:",
+        error
+      );
+      Alert.alert("Error", error.message || "Error during the process");
     }
+    // } else {
+    //   // Nếu số lượng không thay đổi, chỉ cần tạo phiên thanh toán
+    //   await createCheckoutSession();
+    // }
   };
 
   const increment = () => {
@@ -193,133 +196,111 @@ const CartTile = ({ item }) => {
   };
   return (
     <View>
-      {/* {paymentUrl ? (
-        // Nếu payment URL đã được set, hiển thị WebView
-        <WebView
-          source={{ uri: paymentUrl }}
-          onNavigationStateChange={(event) => {
-            if (event.url.includes(`${baseUrl}/order/responseSucessPayPal`)) {
-              // Xử lý khi trả về URL thành công
-              setPaymentUrl(null);
-              Alert.alert("Success", "Payment successful");
-            }
-            if (event.url.includes(`${baseUrl}/order/responseCancelPayPal`)) {
-              // Xử lý khi người dùng hủy thanh toán
-              setPaymentUrl(null);
-              Alert.alert("Cancelled", "Payment was cancelled");
-            }
-          }}
-        />
-      ) : ( */}
-      <View>
-        <TouchableOpacity
-          style={styles.container}
-          onPress={() =>
-            navigation.navigate("Details", {
-              product: item?.order?.product_id?._id,
-            })
-          }
-        >
-          <View style={styles.imageContainer}>
-            <Image
-              source={{ uri: item?.order?.product_id?.image[0] }} // Giả sử image là một mảng và bạn muốn hiển thị hình đầu tiên
-              resizeMode="cover"
-              style={styles.productImg}
-            />
+      <TouchableOpacity
+        style={styles.container}
+        onPress={() =>
+          navigation.navigate("Details", {
+            product: item?.order?.product_id?._id,
+          })
+        }
+      >
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: item?.order?.product_id?.image[0] }} // Giả sử image là một mảng và bạn muốn hiển thị hình đầu tiên
+            resizeMode="cover"
+            style={styles.productImg}
+          />
+        </View>
+        <View style={styles.textContainer}>
+          <Text style={styles.productTxt} numberOfLines={1}>
+            {item?.order?.product_id?.productName}
+          </Text>
+          <View style={styles.rating}>
+            <TouchableOpacity onPress={() => increment()}>
+              <SimpleLineIcons name="plus" size={20} color="black" />
+            </TouchableOpacity>
+            <Text>
+              {count}/{item?.productQuantityInStore}{" "}
+            </Text>
+            <TouchableOpacity onPress={() => decrement()}>
+              <SimpleLineIcons name="minus" size={20} color="black" />
+            </TouchableOpacity>
           </View>
-          <View style={styles.textContainer}>
-            <Text style={styles.productTxt} numberOfLines={1}>
-              {item?.order?.product_id?.productName}
-            </Text>
-            <View style={styles.rating}>
-              <TouchableOpacity onPress={() => increment()}>
-                <SimpleLineIcons name="plus" size={20} color="black" />
-              </TouchableOpacity>
-              <Text>
-                {count}/{item?.productQuantityInStore}{" "}
-              </Text>
-              <TouchableOpacity onPress={() => decrement()}>
-                <SimpleLineIcons name="minus" size={20} color="black" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.supplierTxt} numberOfLines={1}>
-              Store: {item?.order?.store_id?.storeName} -{" "}
-              {item?.order?.store_id?.location}
-            </Text>
-            {/* <Text style={styles.supplierTxt} numberOfLines={1}>
+          <Text style={styles.supplierTxt} numberOfLines={1}>
+            Store: {item?.order?.store_id?.storeName} -{" "}
+            {item?.order?.store_id?.location}
+          </Text>
+          {/* <Text style={styles.supplierTxt} numberOfLines={1}>
               
               Total price= ${item?.order?.totalPrice}
             </Text> */}
-            <Text style={styles.supplierTxt} numberOfLines={1}>
-              Total price= $
-              {item?.order?.product_id?.price && count
-                ? (item.order.product_id.price * count).toFixed(2)
-                : "N/A"}
-            </Text>
-            <Text style={styles.supplierTxt} numberOfLines={1}>
-              {item?.order?.timestamp
-                ? formatDate(item.order.timestamp)
-                : "Không có dữ liệu thời gian"}
-            </Text>
-          </View>
-          <View>
-            <TouchableOpacity
-              style={{ paddingBottom: 20, paddingLeft: 75 }}
-              onPress={() => deleteCart()}
-            >
-              <AntDesign name="delete" size={18} color="red" />
-            </TouchableOpacity>
+          <Text style={styles.supplierTxt} numberOfLines={1}>
+            Total price= $
+            {item?.order?.product_id?.price && count
+              ? (item.order.product_id.price * count).toFixed(2)
+              : "N/A"}
+          </Text>
+          <Text style={styles.supplierTxt} numberOfLines={1}>
+            {item?.order?.timestamp
+              ? formatDate(item.order.timestamp)
+              : "Không có dữ liệu thời gian"}
+          </Text>
+        </View>
+        <View>
+          <TouchableOpacity
+            style={{ paddingBottom: 20, paddingLeft: 75 }}
+            onPress={() => deleteCart()}
+          >
+            <AntDesign name="delete" size={18} color="red" />
+          </TouchableOpacity>
 
+          <TouchableOpacity onPress={toggleModal} style={styles.checkoutBtn}>
+            <Text style={styles.checkOutText}>CHECKOUT</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.modalView}>
+          <ScrollView horizontal={true} style={styles.imageScrollView}>
+            {item?.order?.product_id?.image?.map((img, index) => (
+              <TouchableOpacity key={index}>
+                <Image source={{ uri: img }} style={styles.thumbnailImage} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <Text>Price: ${item?.order?.product_id?.price}</Text>
+          <Text>Quantity: {count}</Text>
+          <Text>Location: {item?.order?.store_id?.location}</Text>
+          {/* <Text>Total Price: ${item?.order?.totalPrice}</Text> */}
+          <Text>
+            Total price: $
+            {item?.order?.product_id?.price && count
+              ? (item.order.product_id.price * count).toFixed(2)
+              : "N/A"}
+          </Text>
+          <TextInput
+            style={styles.input}
+            onChangeText={setcontentLocation}
+            value={contentLocation}
+            placeholder="Enter your location"
+          />
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity onPress={handlePress} style={styles.checkoutBtn}>
+              <Text style={styles.checkOutText}>Confirm</Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={toggleModal} style={styles.checkoutBtn}>
-              <Text style={styles.checkOutText}>CHECKOUT</Text>
+              <Text style={styles.checkOutText}>Cancel</Text>
             </TouchableOpacity>
           </View>
-        </TouchableOpacity>
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View style={styles.modalView}>
-            <ScrollView horizontal={true} style={styles.imageScrollView}>
-              {item?.order?.product_id?.image?.map((img, index) => (
-                <TouchableOpacity key={index}>
-                  <Image source={{ uri: img }} style={styles.thumbnailImage} />
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <Text>Price: ${item?.order?.product_id?.price}</Text>
-            <Text>Quantity: {count}</Text>
-            <Text>Location: {item?.order?.store_id?.location}</Text>
-            {/* <Text>Total Price: ${item?.order?.totalPrice}</Text> */}
-            <Text>
-              Total price: $
-              {item?.order?.product_id?.price && count
-                ? (item.order.product_id.price * count).toFixed(2)
-                : "N/A"}
-            </Text>
-
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                onPress={handlePress}
-                style={styles.checkoutBtn}
-              >
-                <Text style={styles.checkOutText}>Confirm</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={toggleModal}
-                style={styles.checkoutBtn}
-              >
-                <Text style={styles.checkOutText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      </View>
-      {/* )} */}
+        </View>
+      </Modal>
     </View>
   );
 };

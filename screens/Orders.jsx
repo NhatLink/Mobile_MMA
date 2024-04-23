@@ -6,9 +6,17 @@ import { Ionicons } from "@expo/vector-icons";
 // import { CartList } from '../components';
 import OrdersList from "../components/orders/OrdersList";
 import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
+import fetchOrders from "../hook/fetchOrders";
 
 const Orders = () => {
+  const { data, isLoading, error, refetch } = fetchOrders();
   const navigation = useNavigation();
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch;
+    }, [])
+  );
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.upperRow}>

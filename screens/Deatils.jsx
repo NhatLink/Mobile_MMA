@@ -7,6 +7,7 @@ import {
   Alert,
   ScrollView,
   Modal,
+  TextInput,
 } from "react-native";
 import { baseUrl } from "../utils/IP";
 import React, { useState, useEffect } from "react";
@@ -28,6 +29,8 @@ import useUser from "../hook/useUser";
 import axios from "axios";
 import Carousel from "react-native-snap-carousel";
 import { usePayment } from "../hook/PaymentContext";
+import Toast from "react-native-toast-message";
+import formatDate from "../utils/helper";
 
 const Details = ({ navigation }) => {
   const route = useRoute();
@@ -47,6 +50,10 @@ const Details = ({ navigation }) => {
   const [filteredFeedbacks, setFilteredFeedbacks] = useState([]);
   const [selectedRating, setSelectedRating] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisibleOrder, setModalVisibleOrder] = useState(false);
+  const [modalVisibleCart, setModalVisibleCart] = useState(false);
+  const [contentLocation, setcontentLocation] = useState("");
+  const [contentLocationCart, setcontentLocationCart] = useState("");
   const [selectedStore, setSelectedStore] = useState();
   const userLogin = useUser(navigation);
   const { setPaymentUrl } = usePayment();
@@ -63,74 +70,16 @@ const Details = ({ navigation }) => {
         console.log("Added to cart:", response);
 
         // Hiển thị thông báo khi thêm vào giỏ hàng thành công
-        Alert.alert(
-          "Success",
-          "Added to cart successfully!",
-          [
-            {
-              text: "OK",
-              style: "default", // Có thể sử dụng 'cancel' hoặc 'destructive'
-            },
-          ],
-          {
-            // Tùy chỉnh style cho thông báo
-            titleStyle: {
-              fontWeight: "bold",
-              fontSize: 20,
-              color: "green",
-            },
-            messageStyle: {
-              fontSize: 16,
-              color: "blue",
-            },
-            // Tùy chỉnh nền của thông báo
-            backgroundColor: "lightgray",
-            // Tùy chỉnh màu của các nút
-            buttonTextStyle: {
-              color: "red",
-            },
-            buttonStyle: {
-              backgroundColor: "yellow",
-            },
-            // Tùy chỉnh viền của thông báo
-            overlayStyle: {
-              backgroundColor: "rgba(0,0,0,0.5)",
-            },
-          }
-        );
+        Toast.show({
+          type: "success",
+          text1: "Added to cart",
+        });
       } catch (error) {
         console.error("Failed to add to cart:", error);
-        Alert.alert(
-          "Error",
-          "Failed to add to cart. Please try again later.",
-          [
-            {
-              text: "OK",
-              style: "default",
-            },
-          ],
-          {
-            titleStyle: {
-              fontWeight: "bold",
-              fontSize: 20,
-              color: "red",
-            },
-            messageStyle: {
-              fontSize: 16,
-              color: "black",
-            },
-            backgroundColor: "lightgray",
-            buttonTextStyle: {
-              color: "blue",
-            },
-            buttonStyle: {
-              backgroundColor: "yellow",
-            },
-            overlayStyle: {
-              backgroundColor: "rgba(0,0,0,0.5)",
-            },
-          }
-        );
+        Toast.show({
+          type: "error",
+          text1: "Something went wrong",
+        });
       }
     } else {
       navigation.navigate("Login");
@@ -146,6 +95,7 @@ const Details = ({ navigation }) => {
       store_id: selectedStore?.storeId,
       quantity: count,
       price: data?.price,
+      location: contentLocation,
     };
 
     console.log("body", body);
@@ -319,10 +269,18 @@ const Details = ({ navigation }) => {
 
         console.log(`Deleted key: ${productId}`);
         setFavorites(false);
+        Toast.show({
+          type: "info",
+          text2: "Removed from favorite",
+        });
       } else {
         favoritesObj[productId] = productObj;
         console.log(`Added key: ${productId}`);
         setFavorites(true);
+        Toast.show({
+          type: "success",
+          text2: "Added to favorite",
+        });
       }
 
       await AsyncStorage.setItem(favoritesId, JSON.stringify(favoritesObj));
@@ -335,13 +293,26 @@ const Details = ({ navigation }) => {
     if (userLogin) {
       createCheckoutSession();
     } else {
+      set;
+      // Navigate to the Login page when hasId is false
+      navigation.navigate("Login");
+    }
+  };
+
+  const handleOpenModal = () => {
+    if (userLogin) {
+      setModalVisibleOrder(!modalVisibleOrder);
+    } else {
+      set;
       // Navigate to the Login page when hasId is false
       navigation.navigate("Login");
     }
   };
 
   const increment = () => {
-    setCount(count + 1);
+    if (count < selectedStore?.quantity) {
+      setCount(count + 1);
+    }
   };
 
   const decrement = () => {
@@ -349,6 +320,7 @@ const Details = ({ navigation }) => {
       setCount(count - 1);
     }
   };
+
   // useEffect(() => {
   //   setFilteredFeedbacks(dataFeedback);
   // }, [dataFeedback]);
@@ -504,6 +476,7 @@ const Details = ({ navigation }) => {
                       setModalVisible(!modalVisible);
                     }}
                   >
+                    <Text>Choose Store</Text>
                     <View style={styles.modalView}>
                       <ScrollView>
                         {dataStore?.map((store, index) => (
@@ -531,13 +504,56 @@ const Details = ({ navigation }) => {
               </View>
             </View>
           </TouchableOpacity>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisibleOrder}
+            onRequestClose={() => {
+              setModalVisibleOrder(!modalVisibleOrder);
+            }}
+          >
+            <View style={styles.modalView}>
+              <Text>Price: ${data?.price}</Text>
+              <Text>Quantity: {count}</Text>
+              <Text>
+                Store Location: {selectedStore?.location},
+                {selectedStore?.district},{selectedStore?.province}
+              </Text>
+              <Text>
+                Total price: $
+                {data?.price && count
+                  ? (data?.price * count).toFixed(2)
+                  : "N/A"}
+              </Text>
+              <TextInput
+                style={styles.input}
+                onChangeText={setcontentLocation}
+                value={contentLocation}
+                placeholder="Enter your location"
+              />
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  onPress={handlePress}
+                  style={styles.checkoutBtn}
+                >
+                  <Text style={styles.checkOutText}>Confirm</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setModalVisibleOrder(!modalVisibleOrder)}
+                  style={styles.checkoutBtn}
+                >
+                  <Text style={styles.checkOutText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
           <View>
             <ColorList colors={data?.product_colors} />
           </View>
 
           <View style={styles.titleRow(0, 0)}>
             {/* onPress={handlePress} */}
-            <TouchableOpacity style={styles.cartBtn} onPress={handlePress}>
+            <TouchableOpacity style={styles.cartBtn} onPress={handleOpenModal}>
               <Text
                 style={styles.title("bold", SIZES.large, 10, COLORS.lightWhite)}
               >
@@ -567,14 +583,14 @@ const Details = ({ navigation }) => {
         </View>
         <TouchableOpacity
           style={styles.feedbackHeader}
-          onPress={() => setFeedbackVisible(!feedbackVisible)}
+          // onPress={() => setFeedbackVisible(!feedbackVisible)}
         >
           <Text style={styles.feedbackTitle}>Feedback</Text>
-          <FontAwesome5
+          {/* <FontAwesome5
             name={feedbackVisible ? "chevron-down" : "chevron-up"}
             size={18}
             color="#000"
-          />
+          /> */}
         </TouchableOpacity>
         {/* {feedbackVisible && (
           <> */}
@@ -583,16 +599,16 @@ const Details = ({ navigation }) => {
             rating={
               dataFeedback?.length > 0
                 ? dataFeedback?.reduce((acc, curr) => acc + curr.rating, 0) /
-                dataFeedback?.length
+                  dataFeedback?.length
                 : 0
             }
           />
           <Text style={styles.averageRatingText}>
             {dataFeedback?.length > 0
               ? (
-                dataFeedback?.reduce((acc, curr) => acc + curr.rating, 0) /
-                dataFeedback?.length
-              ).toFixed(1) + "/5.0"
+                  dataFeedback?.reduce((acc, curr) => acc + curr.rating, 0) /
+                  dataFeedback?.length
+                ).toFixed(1) + "/5.0"
               : "No ratings"}
           </Text>
           <Text style={styles.totalFeedbackText}>
@@ -642,7 +658,8 @@ const Details = ({ navigation }) => {
             <View key={index} style={styles.feedback}>
               <Text style={styles.author}>{feedback?.userName}</Text>
               <Text style={styles.date}>
-                {new Date(feedback?.timestamp).toLocaleDateString()}
+                {/* {new Date(feedback?.timestamp).toLocaleDateString()} */}
+                {formatDate(feedback?.timestamp)}
               </Text>
               <StarRating rating={feedback?.rating} />
               <Text style={styles.feedbackText}>{feedback?.content}</Text>
@@ -786,6 +803,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
     marginBottom: 20,
+    marginLeft: 10,
   },
   feedbackTitle: {
     fontSize: 20,

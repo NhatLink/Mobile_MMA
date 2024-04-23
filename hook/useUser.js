@@ -18,7 +18,7 @@ const useUser = (navigation) => {
         if (userData !== null) {
           setUserLogin(true);
         } else {
-          navigation.navigate("Login");
+          // navigation.navigate("Login");
         }
       } catch (error) {
         console.error("Error retrieving user data:", error);

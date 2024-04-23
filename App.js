@@ -13,12 +13,13 @@ import {
   Signup,
   Profile,
   PaymentPage,
+  DetailOrder,
 } from "./screens";
 import Orders from "./screens/Orders";
 import { PaymentProvider } from "./hook/PaymentContext";
 const Stack = createNativeStackNavigator();
 //we are going creates a native stack navigator  using the createNativeStackNavigator function.
-
+import Toast from "react-native-toast-message";
 // Defining the main App component
 export default function App() {
   // Step One
@@ -58,6 +59,11 @@ export default function App() {
           <Stack.Screen
             name="Details"
             component={Details}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Details-Order"
+            component={DetailOrder}
             options={{ headerShown: false }}
           />
 
@@ -108,6 +114,7 @@ export default function App() {
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
+        <Toast />
       </NavigationContainer>
     </PaymentProvider>
   );

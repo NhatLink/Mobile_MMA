@@ -36,15 +36,8 @@ const LoginPage = ({ navigation }) => {
     let valid = true;
 
     // if (!inputs.email) {
-
-    //   handleError("Provide a valid email", 'email');
+    //   handleError("Provide a valid email", "email");
     //   valid = false;
-
-    // } else if (!inputs.email.match(/\S+@\S+\.\S+/)) {
-
-    //   handleError('Provide a valid email', 'email');
-    //   valid = false;
-
     // }
 
     // if (!inputs.password) {
@@ -150,12 +143,12 @@ const LoginPage = ({ navigation }) => {
           />
           {/* WELCOME TEXT */}
 
-          <Text style={styles.motto}>Unlimited Luxurious Furniture </Text>
+          <Text style={styles.motto}>Unlimited Luxurious Gift </Text>
 
           <Input
-            placeholder="Enter email"
+            placeholder="Enter username"
             icon="email-outline"
-            label={"Email"}
+            label={"User Name"}
             error={errors.email}
             onFocus={() => {
               handleError(null, "email");
@@ -172,6 +165,7 @@ const LoginPage = ({ navigation }) => {
               handleError(null, "password");
             }}
             onChangeText={(text) => handleChanges(text, "password")}
+            password={true}
           />
 
           <Button title={"LOGIN"} onPress={validate} />

@@ -109,15 +109,25 @@ const Signup = ({ navigation }) => {
       console.log(data);
 
       const response = await axios.post(endpoint, data);
+      console.log("response sign up: ", response);
 
       if (response.status === 200) {
         setResponseData(response.data.message);
         Alert.alert("Success Register", response.data.message);
         navigation.replace("Login");
+      } else {
+        setResponseData(response.data.message);
+        console.log(response);
+        Alert.alert("Success Register", response.data.message);
       }
     } catch (error) {
-      Alert.alert("Error", error.message);
-      setLoader(false);
+      if (error.response.status === 400) {
+        Alert.alert("Error", error.response.data.message);
+        setLoader(false);
+      } else {
+        Alert.alert("Error", error.data.message);
+        setLoader(false);
+      }
     }
   };
 
@@ -194,6 +204,7 @@ const Signup = ({ navigation }) => {
               error={errors.password}
               onFocus={() => handleError(null, "password")}
               onChangeText={(text) => handleChanges(text, "password")}
+              password={true}
             />
 
             <Button title="SIGN UP" onPress={validate} />

@@ -9,7 +9,7 @@ import Products from "./Products";
 import LoginPage from "./LoginPage";
 import Signup from "./Signup";
 import PaymentPage from "./PaymentPage";
-
+import DetailOrder from "./DetailOrder";
 export {
   Home,
   Cart,
@@ -22,4 +22,5 @@ export {
   LoginPage,
   Signup,
   PaymentPage,
+  DetailOrder,
 };

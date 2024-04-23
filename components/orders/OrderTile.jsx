@@ -17,6 +17,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Rating } from "react-native-ratings";
 import fetchOrders from "../../hook/fetchOrders";
+import { useNavigation } from "@react-navigation/native";
 const OrderTile = ({ item }) => {
   const [responseData, setResponseData] = useState(null);
   const [contentFeedback, setContentFeedback] = useState("");
@@ -24,6 +25,7 @@ const OrderTile = ({ item }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const { data, isLoading, error, refetch } = fetchOrders();
+  const navigation = useNavigation();
   const AddFeedback = async () => {
     setLoading(true);
     try {
@@ -47,9 +49,13 @@ const OrderTile = ({ item }) => {
       console.log("feedback data:", data);
       const response = await instance.post(endpoint, data);
       if (response.status === 201) {
+        refetch;
         setResponseData(response.data);
         Alert.alert("Feedback add successfully");
-        setModalVisible(false); // Close modal after successful feedback
+        setModalVisible(false);
+        navigation.navigate("Details", {
+          product: item?.order?.product_id?._id,
+        });
       }
     } catch (error) {
       console.error("Feedback error: ", error);
@@ -61,7 +67,14 @@ const OrderTile = ({ item }) => {
 
   return (
     <View>
-      <View onPress={() => {}} style={styles.container}>
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate("Details-Order", {
+            order: item?.order?._id,
+          })
+        }
+        style={styles.container}
+      >
         <View style={styles.containerProduct}>
           <View style={styles.imageContainer}>
             <Image
@@ -115,7 +128,7 @@ const OrderTile = ({ item }) => {
           </View>
         )}
 
-        {item?.delivery?.status === "chờ đánh giá" ? (
+        {item?.delivery?.status === "Chờ đánh giá" ? (
           <TouchableOpacity
             style={styles.containerDelivery}
             onPress={() => setModalVisible(true)}
@@ -125,7 +138,7 @@ const OrderTile = ({ item }) => {
             </View>
           </TouchableOpacity>
         ) : null}
-      </View>
+      </TouchableOpacity>
       <Modal
         animationType="slide"
         transparent={true}

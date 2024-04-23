@@ -23,9 +23,10 @@ const Search = () => {
   const handleSearch = async () => {
     Keyboard.dismiss();
     try {
-      const response = await axios.get(
-        `${baseUrl}/product/searchProductByName/${searchKey}`
-      );
+      const encodedSearchKey = encodeURIComponent(searchKey);
+      const url = `${baseUrl}/product/searchProductByName?productName=${encodedSearchKey}`;
+
+      const response = await axios.get(url);
       setSearchResults(response.data.products);
       console.log("Search data: ", response.data.products);
     } catch (error) {

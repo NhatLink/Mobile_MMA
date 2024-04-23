@@ -15,12 +15,18 @@ import fetchOrders from "../../hook/fetchOrders";
 import OrderTile from "./OrderTile";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-
+import { useFocusEffect } from "@react-navigation/native";
 const OrdersList = () => {
   const navigation = useNavigation();
   const { data, isLoading, error, refetch } = fetchOrders();
   const [filteredData, setFilteredData] = useState(data);
   const [selectedStatus, setSelectedStatus] = useState(null);
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch;
+    }, [data])
+  );
+
   useEffect(() => {
     setFilteredData(data); // Cập nhật filteredData mỗi khi data thay đổi
     console.log("datainOrder:", data);

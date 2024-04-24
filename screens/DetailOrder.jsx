@@ -189,9 +189,9 @@ const DetailOrder = ({ navigation }) => {
                   product: data?.order?.product_id?._id,
                 })
               }
-              style={styles.checkoutBtn}
+              // style={styles.checkoutBtn}
             >
-              <Text style={styles.checkOutText}>View Shop</Text>
+              <Text style={styles.checkOutText1}>View Shop</Text>
             </TouchableOpacity>
           </View>
 
@@ -268,6 +268,7 @@ export default DetailOrder;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: COLORS.lightWhite,
   },
   containerinfo: {
     paddingTop: 130,
@@ -295,8 +296,8 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     letterSpacing: 2,
     paddingTop: SIZES.small,
-    // paddingLeft: SIZES.xLarge,
     marginBottom: SIZES.xSmall,
+    color: COLORS.primary,
   },
   section: {
     marginBottom: 20,
@@ -326,7 +327,8 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 5,
+    marginBottom: 10, // Increase bottom margin
+    color: COLORS.primary, // Change text color
   },
   content: {
     fontSize: 16,
@@ -353,17 +355,25 @@ const styles = StyleSheet.create({
   },
   checkoutBtn: {
     width: 150,
-    height: 30,
+    height: 40, // Increase height
     backgroundColor: COLORS.primary,
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
+    marginTop: 10, // Add top margin
   },
   checkOutText: {
     fontSize: SIZES.small,
     fontWeight: "500",
     letterSpacing: 1,
     color: COLORS.lightWhite,
+    textTransform: "uppercase",
+  },
+  checkOutText1: {
+    fontSize: SIZES.medium,
+    fontWeight: "500",
+    letterSpacing: 1,
+    color: COLORS.black,
     textTransform: "uppercase",
   },
   containerDelivery: {
@@ -395,14 +405,13 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   button: {
-    width: "100%",
-    height: "100%",
+    width: "45%", // Adjust width
+    height: 40, // Adjust height
     backgroundColor: COLORS.primary,
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    maxWidth: 120,
-    maxHeight: 20,
+    margin: 5, // Add margin between buttons
   },
   buttonRow: {
     flexDirection: "row",

@@ -12,12 +12,20 @@ import {
 import CartTile from "./cartTile";
 import fetchCart from "../../hook/fetchCart";
 import { COLORS, SIZES } from "../../constants";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 const CartList = () => {
   const navigation = useNavigation();
-  const { data, isLoading, error, refetch } = fetchCart();
+  const { data, isLoading, error, refetch, fetchData } = fetchCart();
   const [selectedItem, setSelectedItem] = useState(null);
+  const [dataCart, setdataCart] = useState(data);
+  useEffect(() => {
+    console.log("responsedata", data);
+    setdataCart(data);
+  }, [data]);
+  useEffect(() => {
+    refetch();
+  }, []);
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -48,7 +56,7 @@ const CartList = () => {
     <View>
       {/* Render cart item list */}
       <FlatList
-        data={data}
+        data={dataCart}
         keyExtractor={(item) => item?.order?._id}
         renderItem={({ item }) => <CartTile item={item} />}
         vertical={true}

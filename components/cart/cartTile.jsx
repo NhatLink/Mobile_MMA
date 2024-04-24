@@ -21,7 +21,7 @@ import { baseUrl } from "../../utils/IP";
 import formatDate from "../../utils/helper";
 import { usePayment } from "../../hook/PaymentContext";
 import fetchCart from "../../hook/fetchCart";
-
+import Toast from "react-native-toast-message";
 // import { ScrollView } from "react-native-gesture-handler";
 
 const CartTile = ({ item }) => {
@@ -32,10 +32,11 @@ const CartTile = ({ item }) => {
   // const [paymentUrl, setPaymentUrl] = useState(null);
   const userLogin = useUser(navigation);
   const { setPaymentUrl } = usePayment();
+  const [loading, setLoading] = useState(false);
   const toggleModal = () => {
     setModalVisible(!modalVisible);
   };
-  const { refetch } = fetchCart();
+  const { refetch, fetchData, data } = fetchCart();
   // const deleteCart = async () => {
   //   const endpoint = `${baseUrl}/order/deleteOrder/${item._id}`;
 
@@ -48,7 +49,6 @@ const CartTile = ({ item }) => {
   //     console.error("Failed to delete cart item:", error);
   //   }
   // };
-
   const deleteCart = async () => {
     Alert.alert(
       "Confirm Deletion",
@@ -63,6 +63,7 @@ const CartTile = ({ item }) => {
         {
           text: "OK",
           onPress: async () => {
+            setLoading(true);
             const id = await AsyncStorage.getItem("id");
             const accessToken = await AsyncStorage.getItem("accessToken");
             if (!id || !accessToken) {
@@ -77,10 +78,19 @@ const CartTile = ({ item }) => {
             try {
               await instance.delete(endpoint);
               await AsyncStorage.removeItem("cartCount");
-              refetch();
-              // navigation.navigate("Cart");
+
+              Toast.show({
+                type: "success",
+                text1: "Delete Cart sucessfull",
+              });
+              fetchData();
+              navigation.navigate("Cart");
+              setLoading(false);
             } catch (error) {
               console.error("Failed to delete cart item:", error);
+              setLoading(false);
+            } finally {
+              setLoading(false);
             }
           },
         },
@@ -90,6 +100,7 @@ const CartTile = ({ item }) => {
   };
 
   const updateCart = async () => {
+    setLoading(true);
     const id = await AsyncStorage.getItem("id");
     const accessToken = await AsyncStorage.getItem("accessToken");
     if (!id || !accessToken) {
@@ -106,10 +117,12 @@ const CartTile = ({ item }) => {
       };
       const endpoint = `${baseUrl}/order/updateOrder/${item?.order?._id}`;
       await instance.put(endpoint, data);
-      refetch();
-      // navigation.navigate("Cart");
+      setLoading(false);
     } catch (error) {
       console.error("Failed to delete cart item:", error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -164,11 +177,15 @@ const CartTile = ({ item }) => {
       navigation.navigate("Login");
       return;
     }
-
+    if (contentLocation === "") {
+      Alert.alert("Error", "Gift sending address");
+      return;
+    }
     // Kiểm tra xem có cần cập nhật giỏ hàng không
     // if (count !== item?.order?.quantity) {
     try {
       // Cập nhật giỏ hàng trước
+
       await updateCart();
       // Sau khi cập nhật xong, tiếp tục với việc tạo phiên thanh toán
       await createCheckoutSession();

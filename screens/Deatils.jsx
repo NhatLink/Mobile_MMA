@@ -8,6 +8,7 @@ import {
   ScrollView,
   Modal,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { baseUrl } from "../utils/IP";
 import React, { useState, useEffect } from "react";
@@ -31,7 +32,6 @@ import Carousel from "react-native-snap-carousel";
 import { usePayment } from "../hook/PaymentContext";
 import Toast from "react-native-toast-message";
 import formatDate from "../utils/helper";
-
 const Details = ({ navigation }) => {
   const route = useRoute();
   const { product } = route.params;
@@ -86,6 +86,7 @@ const Details = ({ navigation }) => {
     }
   };
   const createCheckoutSession = async () => {
+    setLoading(true);
     const id = await AsyncStorage.getItem("id");
     const accessToken = await AsyncStorage.getItem("accessToken");
     const userID = `user${JSON.parse(id)}`;
@@ -116,12 +117,17 @@ const Details = ({ navigation }) => {
         setPaymentUrl(data.url);
         console.log("urlPay:", data.url);
         navigation.navigate("PaymentPage");
+        setLoading(false);
       } else {
         Alert.alert("Error", "Payment URL not found");
+        setLoading(false);
       }
     } catch (error) {
       console.error("Error during payment:", error);
       Alert.alert("Error", error.message || "Error during payment process");
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -161,6 +167,7 @@ const Details = ({ navigation }) => {
   //   }
   // };
   const handleGetDetailProduct = async () => {
+    setLoading(true);
     if (!product) {
       setError("No item ID provided");
       return;
@@ -173,13 +180,18 @@ const Details = ({ navigation }) => {
       setCurrentImage(response.data.image[0]);
       console.log("product", response.data);
       setError("");
+      setLoading(false);
     } catch (error) {
       setError("Failed to fetch data");
       console.log("response data", error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGetFeedbackProduct = async () => {
+    setLoading(true);
     if (!product) {
       setError("No item ID provided");
       return;
@@ -191,12 +203,17 @@ const Details = ({ navigation }) => {
       setDataFeedback(response?.data?.feedbacks);
       setFilteredFeedbacks(response?.data?.feedbacks);
       setError("");
+      setLoading(false);
     } catch (error) {
       setError("Failed to fetch data");
       console.log("response data", error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
   const handleGetStoreProduct = async () => {
+    setLoading(true);
     if (!product) {
       setError("No item ID provided");
       return;
@@ -209,9 +226,13 @@ const Details = ({ navigation }) => {
       console.log("Store", response.data.stores);
       setSelectedStore(response.data.stores[0]);
       setError("");
+      setLoading(false);
     } catch (error) {
       setError("Failed to fetch data");
       console.log("response data", error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -334,7 +355,13 @@ const Details = ({ navigation }) => {
       );
     }
   };
-
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
   return (
     <View style={styles.container}>
       {/* {paymentUrl ? (
@@ -532,7 +559,7 @@ const Details = ({ navigation }) => {
                     style={styles.input}
                     onChangeText={setcontentLocation}
                     value={contentLocation}
-                    placeholder="Enter your location"
+                    placeholder="Gift sending address"
                   />
                 </View>
                 <View style={styles.buttonContainer}>
@@ -992,6 +1019,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    alignContent: "center",
   },
 });
 

@@ -73,48 +73,64 @@ const OrdersList = () => {
       </View>
     );
   }
+
+  // if (filteredData.length === 0) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <Image
+  //         source={{ uri: "https://rsrc.easyeat.ai/mweb/no-orders2.webp" }}
+  //         style={styles.emptyFilterImage}
+  //       />
+  //       {/* <View style={styles.buttonContainer}>
+  //           <Button
+  //             title="Go to Shopping"
+  //             onPress={() => navigation.navigate("Bottom Navigation")}
+  //           />
+  //         </View> */}
+  //     </View>
+  //   );
+  // }
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filtersContainer}
-      >
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => filterOrder(null)}
-        >
-          <View style={styles.filterContent}>
-            <MaterialCommunityIcons
-              name="truck-fast-outline"
-              size={16}
-              color="gray"
-            />
-            <Text style={styles.filterText}>All</Text>
-          </View>
-        </TouchableOpacity>
-        {["Chờ xác nhận", "Chờ giao hàng", "Chờ đánh giá", "Đã xác nhận"].map(
-          (status) => (
-            <TouchableOpacity
-              key={status}
-              style={[
-                styles.filterButton,
-                selectedStatus === status && styles.selectedFilterButton,
-              ]}
-              onPress={() => filterOrder(status)}
-            >
-              <View style={styles.filterContent}>
-                <MaterialCommunityIcons
-                  name="truck-fast-outline"
-                  size={16}
-                  color="gray"
-                />
-                <Text style={styles.filterText}>{status}</Text>
-              </View>
-            </TouchableOpacity>
-          )
-        )}
-      </ScrollView>
+      <View style={styles.filtersContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => filterOrder(null)}
+          >
+            <View style={styles.filterContent}>
+              <MaterialCommunityIcons
+                name="truck-fast-outline"
+                size={16}
+                color="gray"
+              />
+              <Text style={styles.filterText}>All</Text>
+            </View>
+          </TouchableOpacity>
+          {["Chờ xác nhận", "Chờ giao hàng", "Chờ đánh giá", "Đã xác nhận"].map(
+            (status) => (
+              <TouchableOpacity
+                key={status}
+                style={[
+                  styles.filterButton,
+                  selectedStatus === status && styles.selectedFilterButton,
+                ]}
+                onPress={() => filterOrder(status)}
+              >
+                <View style={styles.filterContent}>
+                  <MaterialCommunityIcons
+                    name="truck-fast-outline"
+                    size={16}
+                    color="gray"
+                  />
+                  <Text style={styles.filterText}>{status}</Text>
+                </View>
+              </TouchableOpacity>
+            )
+          )}
+        </ScrollView>
+      </View>
+
       {filteredData.length === 0 ? (
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
@@ -123,12 +139,6 @@ const OrdersList = () => {
             source={{ uri: "https://rsrc.easyeat.ai/mweb/no-orders2.webp" }}
             style={styles.emptyFilterImage}
           />
-          {/* <View style={styles.buttonContainer}>
-            <Button
-              title="Go to Shopping"
-              onPress={() => navigation.navigate("Bottom Navigation")}
-            />
-          </View> */}
         </View>
       ) : (
         <FlatList
@@ -173,21 +183,37 @@ const styles = StyleSheet.create({
     resizeMode: "cover", // Điều chỉnh ảnh để vừa vặn không gian hiển thị mà không bị méo
   },
   emptyFilterImage: {
-    marginTop: 500,
     width: 300, // Chiều rộng của màn hình
     height: 300, // Chiều cao của màn hình
     resizeMode: "cover", // Điều chỉnh ảnh để vừa vặn không gian hiển thị mà không bị méo
   },
   buttonContainer: {
-    position: "absolute", // Đặt nút ở trên cùng màn hình
-    bottom: 20, // Cách đáy màn hình 20 pixel
-    left: 20, // Cách mép trái màn hình 20 pixel
-    right: 20, // Cách mép phải màn hình 20 pixel
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
+  filtersContainer: {
+    flexDirection: "row",
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    backgroundColor: "#f0f0f0",
+  },
+
+  filterButton: {
+    padding: 10,
+    marginRight: 5,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    backgroundColor: "#fff",
+  },
+
   selectedFilterButton: {
     borderColor: "blue",
     backgroundColor: "#e0e0ff",
   },
+
   filterContent: {
     flexDirection: "row",
     alignItems: "center",
@@ -198,20 +224,6 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     textAlign: "center",
     fontWeight: "bold",
-  },
-  filterButton: {
-    padding: 10,
-    marginRight: 3,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    backgroundColor: "#fff",
-  },
-  filtersContainer: {
-    flexDirection: "row",
-    paddingVertical: 10,
-    paddingHorizontal: 5,
-    backgroundColor: "#f0f0f0",
   },
 });
 
